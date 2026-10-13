@@ -19,7 +19,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 24, cache: npm }
+        with:
+          node-version: 24
+          cache: npm
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
@@ -34,8 +36,10 @@ jobs:
     strategy:
       matrix:
         include:
-          - { name: app, target: runner }
-          - { name: migrate, target: ${{ github.ref_name == 'test' && 'seeder' || 'migrator' }} }
+          - name: app
+            target: runner
+          - name: migrate
+            target: ${{ github.ref_name == 'test' && 'seeder' || 'migrator' }}
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
