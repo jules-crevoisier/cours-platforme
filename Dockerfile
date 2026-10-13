@@ -36,7 +36,7 @@ COPY prisma ./prisma
 USER node
 CMD ["npx", "prisma", "migrate", "deploy"]
 
-# ── 3 bis. Migrations + données de démo (branche `test` uniquement) ──
+# ── 3 bis. Migrations + données de démo (déploiement `test`) ──
 # Réutilise les dépendances (tsx, client Prisma généré) ; le seed est idempotent.
 FROM deps AS seeder
 COPY src/data ./src/data
