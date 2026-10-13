@@ -36,6 +36,14 @@ COPY prisma ./prisma
 USER node
 CMD ["npx", "prisma", "migrate", "deploy"]
 
+# ── 3 bis. Migrations + données de démo (déploiement `test`) ──
+# Réutilise les dépendances (tsx, client Prisma généré) ; le seed est idempotent.
+FROM deps AS seeder
+COPY src/data ./src/data
+ENV SEED_FORCE=1
+USER node
+CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed"]
+
 # ── 4. Runtime ──────────────────────────────────────────────
 FROM node:${NODE_VERSION} AS runner
 WORKDIR /app

@@ -1,0 +1,54 @@
+# Dokploy (serveur léger) : tire les images construites par GitLab CI, ne compile rien.
+# À utiliser À LA PLACE de docker-compose.yml dans Dokploy ("Compose path").
+# Variables à définir dans Dokploy, en plus de celles de docker-compose.yml :
+#   REGISTRY_IMAGE  ex. registry.gitlab.com/<groupe>/<projet>
+#   IMAGE_TAG       main (prod) ou test (recette)
+# Le serveur doit être connecté au registry GitLab (docker login, jeton de déploiement read_registry).
+services:
+  db:
+    image: mariadb:11.8
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?à définir}
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-cours}
+      MARIADB_USER: ${MARIADB_USER:-cours}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:?à définir}
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    image: ${REGISTRY_IMAGE:?à définir}/migrate:${IMAGE_TAG:?main ou test}
+    pull_policy: always
+    environment:
+      DATABASE_URL: mysql://${MARIADB_USER:-cours}:${MARIADB_PASSWORD}@db:3306/${MARIADB_DATABASE:-cours}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  app:
+    image: ${REGISTRY_IMAGE:?à définir}/app:${IMAGE_TAG:?main ou test}
+    pull_policy: always
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: mysql://${MARIADB_USER:-cours}:${MARIADB_PASSWORD}@db:3306/${MARIADB_DATABASE:-cours}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?à définir}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      SIGNUP_ALLOWED_DOMAINS: ${SIGNUP_ALLOWED_DOMAINS:-}
+      PEERTUBE_HOSTS: ${PEERTUBE_HOSTS:-}
+      LINK_CHECK_ALLOW_HOSTS: ${LINK_CHECK_ALLOW_HOSTS:-}
+      PORT: 3000
+    expose:
+      - "3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  db-data:
