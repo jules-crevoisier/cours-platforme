@@ -1,9 +1,9 @@
-# Dokploy (serveur léger) : tire les images construites par GitLab CI, ne compile rien.
+# Dokploy (serveur léger) : tire les images construites par GitHub Actions, ne compile rien.
 # À utiliser À LA PLACE de docker-compose.yml dans Dokploy ("Compose path").
 # Variables à définir dans Dokploy, en plus de celles de docker-compose.yml :
-#   REGISTRY_IMAGE  ex. registry.gitlab.com/<groupe>/<projet>
+#   REGISTRY_IMAGE  ex. ghcr.io/<utilisateur>/<repo> (en minuscules)
 #   IMAGE_TAG       main (prod) ou test (recette)
-# Le serveur doit être connecté au registry GitLab (docker login, jeton de déploiement read_registry).
+# Le serveur doit être connecté au registry GitHub (ghcr.io) (docker login, jeton de déploiement read_registry).
 services:
   db:
     image: mariadb:11.8
