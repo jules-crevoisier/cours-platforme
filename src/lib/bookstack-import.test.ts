@@ -121,3 +121,17 @@ describe("parseBookExport", () => {
     expect(b.items[2]).toMatchObject({ markdown: "Hors chapitre" });
   });
 });
+
+describe("htmlToMarkdown — tableaux et intégrations", () => {
+  it("convertit un tableau en tableau Markdown", () => {
+    const md = htmlToMarkdown("<table><tr><th>Rendu</th><th>Date</th></tr><tr><td><p>Maquette</p></td><td>07/02</td></tr></table>");
+    expect(md).toBe("| Rendu | Date |\n| --- | --- |\n| Maquette | 07/02 |");
+  });
+  it("garde une iframe https en lien et ignore les autres schémas", () => {
+    expect(htmlToMarkdown('<iframe src="https://www.youtube.com/embed/abc"></iframe>')).toBe("[Intégration](https://www.youtube.com/embed/abc)");
+    expect(htmlToMarkdown('<iframe src="javascript:alert(1)"></iframe>')).toBe("");
+  });
+  it("conserve les images avec URL absolue", () => {
+    expect(htmlToMarkdown('<img src="https://docs.x.fr/uploads/a.png" alt="capture">')).toBe("![capture](https://docs.x.fr/uploads/a.png)");
+  });
+});

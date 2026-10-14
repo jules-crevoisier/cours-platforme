@@ -122,6 +122,26 @@ const decode = (s: string) =>
 /** Conversion HTML BookStack → Markdown (suffisante pour du contenu de cours ; le reste est aplati en texte). */
 export function htmlToMarkdown(html: string): string {
   let s = html.replace(/\r/g, "").replace(/<(script|style)[\s\S]*?<\/\1>/gi, "");
+  // Tableaux → tableaux Markdown (GFM) ; cellules aplaties sur une ligne
+  s = s.replace(/<table[\s\S]*?<\/table>/gi, (table) => {
+    const rows = [...table.matchAll(/<tr[\s\S]*?<\/tr>/gi)]
+      .map((r) =>
+        [...r[0].matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi)].map((c) =>
+          htmlToMarkdown(c[1]).replace(/\s*\n+\s*/g, " ").replace(/\|/g, "\\|").trim(),
+        ),
+      )
+      .filter((r) => r.length);
+    if (!rows.length) return "";
+    const width = Math.max(...rows.map((r) => r.length));
+    const line = (r: string[]) => `| ${[...r, ...Array<string>(width - r.length).fill("")].join(" | ")} |`;
+    const head = `${line(rows[0])}\n| ${Array<string>(width).fill("---").join(" | ")} |`;
+    return `\n\n${[head, ...rows.slice(1).map(line)].join("\n")}\n\n`;
+  });
+  // Intégrations (vidéo, schéma) → lien
+  s = s.replace(
+    /<iframe\s[^>]*src="(https?:[^"]+)"[^>]*>(?:[\s\S]*?<\/iframe>)?/gi,
+    (_, src: string) => `\n\n[Intégration](${src})\n\n`,
+  );
   s = s.replace(
     /<pre[^>]*>\s*(?:<code[^>]*>)?([\s\S]*?)(?:<\/code>)?\s*<\/pre>/gi,
     (_, c: string) => "\n\n```\n" + decode(c.replace(/<[^>]+>/g, "")).replace(/\n+$/, "") + "\n```\n\n",
@@ -172,9 +192,12 @@ export type ExportedBook = { title: string; items: ExportedItem[] };
  * Structure : `<h1 id="chapter-N">` pour un chapitre, `<h1 id="page-N">` pour une page, précédée d'un
  * `<div class="chapter-hint">Nom du chapitre</div>` quand la page appartient à un chapitre.
  */
-export function parseBookExport(html: string): ExportedBook {
+export function parseBookExport(
+  html: string,
+  opts: { pageHtml?: (pageId: number) => string | undefined } = {},
+): ExportedBook {
   const title = decode(html.match(/<title>([\s\S]*?)<\/title>/i)?.[1] ?? "").trim() || "Sans titre";
-  const re = /(?:<div class="chapter-hint">([\s\S]*?)<\/div>\s*)?<h1 id="(chapter|page)-\d+"[^>]*>([\s\S]*?)<\/h1>/gi;
+  const re = /(?:<div class="chapter-hint">([\s\S]*?)<\/div>\s*)?<h1 id="(chapter|page)-(\d+)"[^>]*>([\s\S]*?)<\/h1>/gi;
   const marks = [...html.matchAll(re)];
   const clean = (s: string) =>
     htmlToMarkdown(s.replace(/<div class="page-break"><\/div>/gi, "").replace(/<div class="chapter-hint">[\s\S]*?<\/div>/gi, ""));
@@ -185,8 +208,10 @@ export function parseBookExport(html: string): ExportedBook {
     const start = m.index! + m[0].length;
     const end = i + 1 < marks.length ? marks[i + 1].index! : html.length;
     const body = html.slice(start, end).replace(/<\/(body|html)>[\s\S]*$/i, "");
-    const name = decode(m[3].replace(/<[^>]+>/g, "")).trim();
-    const markdown = clean(body);
+    const name = decode(m[4].replace(/<[^>]+>/g, "")).trim();
+    // Contenu « en ligne » fourni (images avec leur URL d'origine) : remplace celui de l'export
+    const live = m[2] === "page" ? opts.pageHtml?.(Number(m[3])) : undefined;
+    const markdown = live != null ? htmlToMarkdown(live) : clean(body);
     if (m[2] === "chapter") {
       const ch = { type: "chapter" as const, title: name, markdown, pages: [] as ExportedPage[] };
       chapters.set(name, ch);

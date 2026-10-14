@@ -84,6 +84,11 @@ async function pageMarkdown(id: number): Promise<string> {
 /** Une source = des candidats + un chargeur du contenu (tous deux indépendants de BookStack ensuite). */
 type Source = { candidates: CourseCandidate[]; load: (c: CourseCandidate) => Promise<ExportedBook> };
 
+// --live-pages <fichier.json> : { "<idPage>": "<html de .page-content>" } récupéré depuis le site en ligne
+// (les exports HTML intègrent les images en base64 sans leur URL ; le contenu en ligne les référence par URL).
+const livePagesFile = opt("live-pages");
+const livePages: Record<string, string> | null = livePagesFile ? JSON.parse(readFileSync(livePagesFile, "utf8")) : null;
+
 async function htmlSource(dir: string): Promise<Source> {
   const books = new Map<number, ExportedBook>();
   const candidates: CourseCandidate[] = [];
@@ -91,7 +96,7 @@ async function htmlSource(dir: string): Promise<Source> {
     .filter((f) => extname(f).toLowerCase() === ".html")
     .sort()
     .forEach((file, i) => {
-      const book = parseBookExport(readFileSync(join(dir, file), "utf8"));
+      const book = parseBookExport(readFileSync(join(dir, file), "utf8"), { pageHtml: (id) => livePages?.[id] });
       const slug = basename(file, extname(file)).replace(/^bookstack-/, "");
       books.set(i, book);
       candidates.push({ id: i, name: book.title, slug, shelves: [], ...parseMillesime(book.title) });
