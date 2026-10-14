@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { assertAllowed, requireUser } from "@/lib/session";
 import { canManageReferentiel, isStaff } from "@/lib/permissions";
@@ -61,6 +62,11 @@ export default async function ReferentielPage() {
         </p>
         <p className="font-mono text-sm text-muted">
           {plural(competences.length, "compétence")} · {total} AC
+        </p>
+        <p>
+          <Link href="/admin/referentiel/couverture" className="underline">
+            Voir la couverture des AC par les SAÉ →
+          </Link>
         </p>
       </header>
 
