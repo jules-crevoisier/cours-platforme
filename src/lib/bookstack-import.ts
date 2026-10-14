@@ -160,3 +160,43 @@ export function uniqueSlug(base: string, taken: Set<string>): string {
   taken.add(slug);
   return slug;
 }
+
+export type ExportedPage = { title: string; markdown: string };
+export type ExportedItem =
+  | { type: "page"; title: string; markdown: string }
+  | { type: "chapter"; title: string; markdown: string; pages: ExportedPage[] };
+export type ExportedBook = { title: string; items: ExportedItem[] };
+
+/**
+ * Lit l'export « Fichiers web » (HTML) d'un livre BookStack, disponible sans droits admin.
+ * Structure : `<h1 id="chapter-N">` pour un chapitre, `<h1 id="page-N">` pour une page, précédée d'un
+ * `<div class="chapter-hint">Nom du chapitre</div>` quand la page appartient à un chapitre.
+ */
+export function parseBookExport(html: string): ExportedBook {
+  const title = decode(html.match(/<title>([\s\S]*?)<\/title>/i)?.[1] ?? "").trim() || "Sans titre";
+  const re = /(?:<div class="chapter-hint">([\s\S]*?)<\/div>\s*)?<h1 id="(chapter|page)-\d+"[^>]*>([\s\S]*?)<\/h1>/gi;
+  const marks = [...html.matchAll(re)];
+  const clean = (s: string) =>
+    htmlToMarkdown(s.replace(/<div class="page-break"><\/div>/gi, "").replace(/<div class="chapter-hint">[\s\S]*?<\/div>/gi, ""));
+
+  const items: ExportedItem[] = [];
+  const chapters = new Map<string, Extract<ExportedItem, { type: "chapter" }>>();
+  marks.forEach((m, i) => {
+    const start = m.index! + m[0].length;
+    const end = i + 1 < marks.length ? marks[i + 1].index! : html.length;
+    const body = html.slice(start, end).replace(/<\/(body|html)>[\s\S]*$/i, "");
+    const name = decode(m[3].replace(/<[^>]+>/g, "")).trim();
+    const markdown = clean(body);
+    if (m[2] === "chapter") {
+      const ch = { type: "chapter" as const, title: name, markdown, pages: [] as ExportedPage[] };
+      chapters.set(name, ch);
+      items.push(ch);
+    } else {
+      const hint = m[1] ? decode(m[1].replace(/<[^>]+>/g, "")).trim() : null;
+      const parent = hint ? chapters.get(hint) : undefined;
+      if (parent) parent.pages.push({ title: name, markdown });
+      else items.push({ type: "page", title: name, markdown });
+    }
+  });
+  return { title, items };
+}

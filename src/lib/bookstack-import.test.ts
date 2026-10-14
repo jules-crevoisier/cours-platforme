@@ -95,3 +95,29 @@ describe("uniqueSlug", () => {
     expect(uniqueSlug("WR112", taken)).toBe("wr112-3");
   });
 });
+
+import { parseBookExport } from "./bookstack-import";
+
+describe("parseBookExport", () => {
+  const html = `<!doctype html><html><head><title>SAE302</title></head><body>
+<div class="page-content">Intro livre</div><h1>SAE302</h1>
+<h1 id="chapter-34">ORGANISATION</h1><div><p></p></div><div class="page-break"></div>
+<div class="chapter-hint">ORGANISATION</div><h1 id="page-170">Planning</h1><p>Semaine 1</p><div class="page-break"></div>
+<h1 id="chapter-35">SEMAINE 01</h1><div class="page-break"></div>
+<div class="chapter-hint">SEMAINE 01</div><h1 id="page-151">TD01 -Introduction d&#039;Elementor</h1><h3>Objectif</h3><p>Voir <a href="https://x.fr">x</a></p><div class="page-break"></div>
+<h1 id="page-9">Annexe libre</h1><p>Hors chapitre</p>
+</body></html>`;
+  it("reconstruit chapitres, pages et pages hors chapitre", () => {
+    const b = parseBookExport(html);
+    expect(b.title).toBe("SAE302");
+    expect(b.items.map((i) => [i.type, i.title])).toEqual([
+      ["chapter", "ORGANISATION"],
+      ["chapter", "SEMAINE 01"],
+      ["page", "Annexe libre"],
+    ]);
+    const week = b.items[1];
+    expect(week.type === "chapter" && week.pages[0]).toMatchObject({ title: "TD01 -Introduction d'Elementor" });
+    expect(week.type === "chapter" && week.pages[0].markdown).toContain("### Objectif");
+    expect(b.items[2]).toMatchObject({ markdown: "Hors chapitre" });
+  });
+});
