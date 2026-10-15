@@ -110,11 +110,15 @@ export default async function CouverturePage() {
                     const set = byLearning.get(l.id) ?? new Set<string>();
                     const empty = set.size === 0;
                     return (
-                      <tr key={l.id} className={empty ? "bg-warn-soft" : undefined}>
+                      <tr key={l.id}>
                         <th scope="row" className="sticky left-0 max-w-sm bg-surface p-3 text-left font-normal">
-                          <span className="badge mr-2 font-mono">{l.code}</span>
+                          <span className="mr-2 font-mono text-sm text-muted">{l.code}</span>
                           <span className="break-words">{l.label}</span>
-                          {empty && <StatusBadge tone="warn">Non couvert</StatusBadge>}
+                          {empty && (
+                            <span className="mt-1 block">
+                              <StatusBadge tone="warn">Non couvert</StatusBadge>
+                            </span>
+                          )}
                         </th>
                         {coverage.columns.map((s) => (
                           <td key={s.id} className="p-3 text-center">
