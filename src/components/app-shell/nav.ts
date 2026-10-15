@@ -40,6 +40,7 @@ export function navSections(role: Role): NavSection[] {
         { href: "/admin/users", label: "Utilisateurs", icon: "user" },
         { href: "/admin/cohorts", label: "Promos", icon: "layers" },
         { href: "/admin/referentiel", label: "Référentiel", icon: "grid" },
+        { href: "/admin/referentiel/couverture", label: "Couverture AC", icon: "grid" },
       ],
     });
   }

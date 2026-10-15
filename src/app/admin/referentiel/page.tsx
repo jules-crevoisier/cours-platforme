@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { assertAllowed, requireUser } from "@/lib/session";
 import { canManageReferentiel, isStaff } from "@/lib/permissions";
@@ -55,6 +56,11 @@ export default async function ReferentielPage() {
     <div className="flex flex-col gap-10">
       <PageHeader
         title="Référentiel de compétences"
+        actions={
+          <Link href="/admin/referentiel/couverture" className="btn">
+            Couverture des AC
+          </Link>
+        }
         meta={
           competences.length > 0 ? (
             <>
