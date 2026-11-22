@@ -11,4 +11,4 @@
 - Changer le *Compose path* de chaque application vers le fichier ci-dessus.
 - Le serveur doit pouvoir lire ghcr.io : soit rendre les packages publics (GitHub → Packages → réglages), soit `docker login ghcr.io` avec un PAT `read:packages`.
 
-Optionnel : secrets `DOKPLOY_WEBHOOK_MAIN` / `DOKPLOY_WEBHOOK_TEST` pour redéployer automatiquement ; variable `PEERTUBE_HOSTS` si utilisée.
+Redéploiement automatique (optionnel) : secrets `DOKPLOY_URL`, `DOKPLOY_API_KEY` et `DOKPLOY_COMPOSE_ID_MAIN` / `DOKPLOY_COMPOSE_ID_TEST` (API Dokploy, recommandé), ou à défaut `DOKPLOY_WEBHOOK_MAIN` / `DOKPLOY_WEBHOOK_TEST`. Couper alors l'*Autodeploy* Dokploy pour ne pas déployer deux fois ; variable `PEERTUBE_HOSTS` si utilisée.

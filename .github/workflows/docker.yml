@@ -62,13 +62,28 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.name }}-${{ github.ref_name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}-${{ github.ref_name }}
 
-  # Optionnel : secrets DOKPLOY_WEBHOOK_MAIN / DOKPLOY_WEBHOOK_TEST (webhook de déploiement Dokploy)
+  # Déploiement Dokploy, au choix :
+  #  - API (recommandé) : secrets DOKPLOY_URL, DOKPLOY_API_KEY, DOKPLOY_COMPOSE_ID_MAIN / DOKPLOY_COMPOSE_ID_TEST
+  #  - webhook : secrets DOKPLOY_WEBHOOK_MAIN / DOKPLOY_WEBHOOK_TEST
   deploy:
     needs: build
     runs-on: ubuntu-latest
     steps:
       - env:
+          DOKPLOY_URL: ${{ secrets.DOKPLOY_URL }}
+          DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
+          COMPOSE_ID: ${{ github.ref_name == 'main' && secrets.DOKPLOY_COMPOSE_ID_MAIN || secrets.DOKPLOY_COMPOSE_ID_TEST }}
           HOOK: ${{ github.ref_name == 'main' && secrets.DOKPLOY_WEBHOOK_MAIN || secrets.DOKPLOY_WEBHOOK_TEST }}
         run: |
-          if [ -z "$HOOK" ]; then echo "pas de webhook Dokploy configuré, déployer à la main"; exit 0; fi
-          curl -fsS -X POST "$HOOK"
+          DOKPLOY_URL=$(printf '%s' "$DOKPLOY_URL" | tr -d '[:space:]')
+          DOKPLOY_API_KEY=$(printf '%s' "$DOKPLOY_API_KEY" | tr -d '[:space:]')
+          COMPOSE_ID=$(printf '%s' "$COMPOSE_ID" | tr -d '[:space:]')
+          if [ -n "$DOKPLOY_URL" ] && [ -n "$DOKPLOY_API_KEY" ] && [ -n "$COMPOSE_ID" ]; then
+            curl -fsS -X POST "$DOKPLOY_URL/api/compose.deploy" \
+              -H "x-api-key: $DOKPLOY_API_KEY" -H "Content-Type: application/json" \
+              -d "{\"composeId\":\"$COMPOSE_ID\"}"
+          elif [ -n "$HOOK" ]; then
+            curl -fsS -X POST "$HOOK"
+          else
+            echo "pas de déploiement Dokploy configuré, déployer à la main"
+          fi
