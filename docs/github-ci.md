@@ -7,6 +7,8 @@
 | `main` | `docker-compose.registry.yml` | `:main` | `migrator` (sans démo) |
 | `test` | `docker-compose.registry.test.yml` | `:test` | `seeder` (avec démo) |
 
+**Prod = `main`** (https://cours.srko.fr). `test` ne sert plus qu'à la recette avec données de démo : on y développe, puis on fusionne `test` dans `main` par PR pour livrer. Ne jamais mettre `docker-compose.yml` (qui compile sur le serveur) dans Dokploy.
+
 ## Côté Dokploy (une seule fois)
 - Changer le *Compose path* de chaque application vers le fichier ci-dessus.
 - Le serveur doit pouvoir lire ghcr.io : soit rendre les packages publics (GitHub → Packages → réglages), soit `docker login ghcr.io` avec un PAT `read:packages`.
