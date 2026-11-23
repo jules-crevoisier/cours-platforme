@@ -19,6 +19,7 @@ describe("milestoneProgress", () => {
     hasCriteria: true,
     requiresDepositUrl: false,
     peerReviewEnabled: false,
+    peerReviewOpen: true,
     assessmentStatus: null,
     depositCount: 0,
     teammateIds: ["b", "c"],
@@ -50,6 +51,10 @@ describe("milestoneProgress", () => {
     expect(milestoneProgress({ ...base, hasCriteria: false, peerReviewEnabled: true, teammateIds: [] }).done).toBe(true);
     // Désactivée : ignorée
     expect(milestoneProgress({ ...base, hasCriteria: false }).peerPending).toBe(0);
+    // Fermée (délai de grâce dépassé) : plus rien à demander
+    const closed = milestoneProgress({ ...base, assessmentStatus: "SUBMITTED", peerReviewEnabled: true, peerReviewOpen: false });
+    expect(closed.peerPending).toBe(0);
+    expect(closed.done).toBe(true);
   });
 });
 

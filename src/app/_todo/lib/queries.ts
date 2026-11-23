@@ -1,5 +1,6 @@
 import "server-only";
 import { db } from "@/lib/db";
+import { isPeerReviewOpen } from "@/app/assessments/_lib/shared";
 import { OVERDUE_LOOKBACK_DAYS, linkProblem, milestoneProgress, type AssessmentStatus, type MilestoneProgress } from "./todo";
 
 const DAY_MS = 86_400_000;
@@ -134,6 +135,7 @@ export async function loadStudentTodo(userId: string, now: Date) {
       hasCriteria,
       requiresDepositUrl: m.requiresDepositUrl,
       peerReviewEnabled: m.peerReviewEnabled,
+      peerReviewOpen: isPeerReviewOpen(m.dueAt, now),
       assessmentStatus: assessment?.status ?? null,
       depositCount: myLinks.length,
       teammateIds,

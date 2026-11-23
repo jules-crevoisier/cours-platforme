@@ -46,6 +46,18 @@ export function unreadNotificationCount(userId: string) {
   return db.notification.count({ where: { userId, readAt: null } });
 }
 
+/**
+ * Marque comme lues les notifications non lues qui pointent vers une page que l'utilisateur vient d'ouvrir.
+ * Ne lève jamais : appelée après le rendu, elle ne doit pas casser la page.
+ */
+export async function markNotificationsReadByLink(userId: string, link: string) {
+  try {
+    await db.notification.updateMany({ where: { userId, link, readAt: null }, data: { readAt: new Date() } });
+  } catch (e) {
+    console.error("markNotificationsReadByLink() a échoué", e);
+  }
+}
+
 /** Destinataires « équipe pédagogique » d'une SAÉ : responsable + co-enseignants */
 export async function saeStaffIds(saeId: string) {
   const sae = await db.sae.findUnique({
