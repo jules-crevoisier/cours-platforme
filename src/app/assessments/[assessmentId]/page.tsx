@@ -21,7 +21,7 @@ import {
   formatDateTime,
   toCriterionView,
 } from "@/app/assessments/_lib/shared";
-import { FeedbackStatusBadge, StatusBadge } from "@/app/assessments/_lib/ui";
+import { AssessmentStatusBadge, EmptyState, PageHeader } from "@/components/ui";
 import { CriteriaComparison } from "@/app/assessments/_lib/comparison";
 import { ConfirmActionButton } from "@/app/assessments/_lib/confirm-action-button";
 import { TeacherFeedbackForm } from "@/app/assessments/_lib/teacher-feedback-form";
@@ -39,7 +39,6 @@ export default async function AssessmentPage({ params }: PageProps<"/assessments
     where: { id: assessmentId },
     include: {
       user: { select: { id: true, name: true } },
-      feedbackBy: { select: { name: true } },
       group: {
         select: {
           id: true,
@@ -85,6 +84,7 @@ export default async function AssessmentPage({ params }: PageProps<"/assessments
   const isOwn = assessment.userId === user.id;
   const published = !!assessment.feedbackPublishedAt;
   const status = feedbackStatus(assessment);
+  const isAuthor = isOwn && !isManager;
 
   const snippets = isManager ? await listMySnippets(user) : [];
   const itemByCriterion = new Map(assessment.items.map((item) => [item.criterionId, item]));
@@ -107,103 +107,69 @@ export default async function AssessmentPage({ params }: PageProps<"/assessments
   const queueHref = `/saes/${sae.id}/review?milestone=${milestone.id}&a=${assessment.id}`;
 
   return (
-    <div className="flex flex-col gap-8">
-      <header className="flex flex-col gap-3">
-        <nav aria-label="Fil d'Ariane" className="text-sm">
-          <ol className="flex flex-wrap items-center gap-x-1 text-muted">
-            <li>
-              <Link href={`/saes/${sae.id}`} className="inline-flex min-h-11 items-center hover:text-ink hover:underline">
-                {sae.code ? `${sae.code} — ` : ""}
-                {sae.title}
-              </Link>
-            </li>
-            <li aria-hidden="true">›</li>
-            <li>
-              <Link href={milestoneHref} className="inline-flex min-h-11 items-center hover:text-ink hover:underline">
-                {milestone.title}
-              </Link>
-            </li>
-          </ol>
-        </nav>
-
-        <h1 className="text-2xl font-semibold text-balance break-words">
-          Auto-évaluation {isOwn ? "(la vôtre)" : `de ${assessment.user.name}`}
-        </h1>
-
-        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
-          <dt className="text-muted">Étudiant·e</dt>
-          <dd className="break-words">{assessment.user.name}</dd>
-          <dt className="text-muted">Groupe</dt>
-          <dd className="break-words">
-            {assessment.group ? (
-              <Link href={`/saes/${sae.id}/groups/${assessment.group.id}`} className="text-accent underline">
-                {assessment.group.name}
-              </Link>
-            ) : (
-              "—"
+    <div className="flex flex-col gap-10">
+      <PageHeader
+        breadcrumbs={[
+          { label: "SAÉ", href: "/saes" },
+          { label: sae.code ?? sae.title, href: `/saes/${sae.id}` },
+          { label: milestone.title, href: milestoneHref },
+          { label: "Auto-évaluation" },
+        ]}
+        title={isOwn ? "Mon auto-évaluation" : `Auto-évaluation de ${assessment.user.name}`}
+        meta={
+          <>
+            <AssessmentStatusBadge status={assessment.status} />
+            {assessment.submittedAt && (
+              <time dateTime={assessment.submittedAt.toISOString()}>{formatDateTime(assessment.submittedAt)}</time>
             )}
-          </dd>
-          <dt className="text-muted">Statut</dt>
-          <dd>
-            <StatusBadge status={assessment.status} />
-          </dd>
-          <dt className="text-muted">Soumise le</dt>
-          <dd>{assessment.submittedAt ? formatDateTime(assessment.submittedAt) : "—"}</dd>
-          {isManager && (
+            {assessment.group && (
+              <span className="break-words">
+                Groupe{" "}
+                <Link href={`/saes/${sae.id}/groups/${assessment.group.id}`} className="link">
+                  {assessment.group.name}
+                </Link>
+              </span>
+            )}
+            {assessment.feedbackPublishedAt && (isManager || isOwn) ? (
+              <span>Retour publié le {formatDateTime(assessment.feedbackPublishedAt)}</span>
+            ) : isManager && status === "DRAFT" ? (
+              <span>Retour en brouillon</span>
+            ) : isAuthor && assessment.status === "SUBMITTED" ? (
+              <span>Retour non publié</span>
+            ) : null}
+          </>
+        }
+        actions={
+          (canEdit || canReopen || canEvaluate) && (
             <>
-              <dt className="text-muted">Retour enseignant</dt>
-              <dd className="flex flex-wrap items-center gap-2">
-                <FeedbackStatusBadge status={status} />
-                {assessment.feedbackPublishedAt && (
-                  <span className="text-muted">
-                    le {formatDateTime(assessment.feedbackPublishedAt)}
-                    {assessment.feedbackBy ? ` par ${assessment.feedbackBy.name}` : ""}
-                  </span>
-                )}
-              </dd>
+              {canEdit && (
+                <Link href={`${milestoneHref}/assess`} className="btn btn-primary">
+                  Modifier
+                </Link>
+              )}
+              {canEvaluate && (
+                <Link href={queueHref} className="btn">
+                  File de correction
+                </Link>
+              )}
+              {canReopen && (
+                <ConfirmActionButton
+                  action={reopenAssessment.bind(null, assessment.id)}
+                  label="Rouvrir"
+                  pendingLabel="Réouverture…"
+                  confirmMessage="Rouvrir cette auto-évaluation ? L'étudiant·e pourra la modifier puis la soumettre à nouveau, et sera notifié·e."
+                />
+              )}
             </>
-          )}
-          {!isManager && isOwn && assessment.status === "SUBMITTED" && (
-            <>
-              <dt className="text-muted">Retour enseignant</dt>
-              <dd>
-                {assessment.feedbackPublishedAt
-                  ? `Publié le ${formatDateTime(assessment.feedbackPublishedAt)}`
-                  : "Pas encore publié"}
-              </dd>
-            </>
-          )}
-        </dl>
-
-        {(canEdit || canReopen || canEvaluate) && (
-          <div className="flex flex-wrap gap-2">
-            {canEdit && (
-              <Link href={`${milestoneHref}/assess`} className="btn btn-primary w-full sm:w-auto">
-                Modifier
-              </Link>
-            )}
-            {canEvaluate && (
-              <Link href={queueHref} className="btn w-full sm:w-auto">
-                Ouvrir dans la file de correction
-              </Link>
-            )}
-            {canReopen && (
-              <ConfirmActionButton
-                action={reopenAssessment.bind(null, assessment.id)}
-                label="Rouvrir"
-                pendingLabel="Réouverture…"
-                confirmMessage="Rouvrir cette auto-évaluation ? L'étudiant·e pourra la modifier puis la soumettre à nouveau, et sera notifié·e."
-              />
-            )}
-          </div>
-        )}
-      </header>
+          )
+        }
+      />
 
       {canEvaluate ? (
-        <section id="positionnement" aria-labelledby="feedback-title" className="flex scroll-mt-4 flex-col gap-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 id="feedback-title" className="text-lg font-semibold">
-              Auto-positionnement et positionnement enseignant
+        <section id="positionnement" aria-labelledby="feedback-title" className="flex scroll-mt-4 flex-col gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 id="feedback-title" className="text-xl">
+              Positionnement
             </h2>
             {published && (
               <ConfirmActionButton
@@ -214,10 +180,6 @@ export default async function AssessmentPage({ params }: PageProps<"/assessments
               />
             )}
           </div>
-          <p className="max-w-prose text-sm text-muted">
-            Pour chaque critère, la justification de l&apos;étudiant·e est à gauche, votre positionnement à droite.
-            Un écart de 2 niveaux ou plus est signalé « Écart important ».
-          </p>
           <TeacherFeedbackForm
             action={saveTeacherFeedback.bind(null, assessment.id)}
             criteria={criteria}
@@ -227,58 +189,56 @@ export default async function AssessmentPage({ params }: PageProps<"/assessments
           />
         </section>
       ) : (
-        <section aria-labelledby="criteria-title" className="flex flex-col gap-3">
-          <h2 id="criteria-title" className="text-lg font-semibold">
-            Positionnement par critère
+        <section aria-labelledby="criteria-title" className="flex flex-col gap-4">
+          <h2 id="criteria-title" className="text-xl">
+            Positionnement
           </h2>
           {canSeeTeacher && published && (
-            <p className="text-sm">
-              Moyenne auto : <strong>{formatAverage(selfAvg)}</strong> · enseignant :{" "}
-              <strong>{formatAverage(teacherAvg)}</strong>
-              {gaps > 0 && ` · ${gaps} écart${gaps > 1 ? "s" : ""} important${gaps > 1 ? "s" : ""}`}
-            </p>
-          )}
-          {isOwn && !isManager && assessment.status === "SUBMITTED" && !published && (
-            <p className="text-sm text-muted">Le retour de l&apos;équipe pédagogique n&apos;est pas encore publié.</p>
-          )}
-          {isManager && assessment.status === "DRAFT" && (
-            <p className="text-sm text-muted">
-              Le positionnement enseignant sera possible une fois l&apos;auto-évaluation soumise.
+            <p className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+              <span>
+                Moyenne auto <strong>{formatAverage(selfAvg)}</strong>
+              </span>
+              <span>
+                Enseignant <strong>{formatAverage(teacherAvg)}</strong>
+              </span>
+              {gaps > 0 && (
+                <span>
+                  {gaps} écart{gaps > 1 ? "s" : ""} important{gaps > 1 ? "s" : ""}
+                </span>
+              )}
             </p>
           )}
           <CriteriaComparison criteria={criteria} showTeacher={canSeeTeacher} teacherDraft={!published} />
         </section>
       )}
 
-      <section aria-labelledby="reflection-title" className="flex flex-col gap-2">
-        <h2 id="reflection-title" className="text-lg font-semibold">
+      <section aria-labelledby="reflection-title" className="flex flex-col gap-3">
+        <h2 id="reflection-title" className="text-xl">
           Réflexion globale
         </h2>
         {assessment.reflection ? (
-          <p className="card max-w-prose break-words whitespace-pre-line">{assessment.reflection}</p>
+          <p className="max-w-prose break-words whitespace-pre-line">{assessment.reflection}</p>
         ) : (
           <p className="text-muted">Aucune réflexion rédigée.</p>
         )}
       </section>
 
       <section aria-labelledby="comments-title" className="flex flex-col gap-4">
-        <h2 id="comments-title" className="text-lg font-semibold">
-          Commentaires ({assessment.comments.length})
+        <h2 id="comments-title" className="text-xl">
+          Commentaires
         </h2>
         {assessment.comments.length === 0 ? (
-          <p className="text-muted">Aucun commentaire pour l&apos;instant.</p>
+          <EmptyState>Aucun commentaire.</EmptyState>
         ) : (
-          <ol className="flex flex-col gap-3">
+          <ol className="flex flex-col divide-y divide-line">
             {assessment.comments.map((comment) => {
               const authorIsTeacher = canManageSae(comment.author, sae);
               const canDelete = comment.author.id === user.id || isManager;
               return (
-                <li key={comment.id} className="card flex flex-col gap-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-medium break-words">{comment.author.name}</span>
-                    <span className={`badge ${authorIsTeacher ? "badge-accent" : ""}`}>
-                      {authorIsTeacher ? "Enseignant" : "Étudiant"}
-                    </span>
+                <li key={comment.id} className="flex flex-col gap-2 py-4 first:pt-0">
+                  <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                    <span className="font-semibold break-words">{comment.author.name}</span>
+                    {authorIsTeacher && <span className="text-sm text-muted">Enseignant</span>}
                     <time dateTime={comment.createdAt.toISOString()} className="text-sm text-muted">
                       {formatDateTime(comment.createdAt)}
                     </time>

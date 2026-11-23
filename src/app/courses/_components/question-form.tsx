@@ -25,27 +25,16 @@ export function QuestionForm({ action }: { action: FormAction }) {
           className="input py-2"
         />
       </div>
-      <label className="flex min-h-11 items-start gap-3">
-        <input
-          type="checkbox"
-          name="anonymous"
-          defaultChecked={values?.anonymous === "on"}
-          aria-describedby={`${id}-anon`}
-          className="mt-0.5 size-5 shrink-0"
-        />
-        <span>
-          Poser anonymement (vis-à-vis des autres étudiants)
-          <span id={`${id}-anon`} className="block text-sm text-muted">
-            Votre nom reste visible par l&apos;équipe du cours.
-          </span>
-        </span>
+      <label className="flex min-h-11 items-center gap-3">
+        <input type="checkbox" name="anonymous" defaultChecked={values?.anonymous === "on"} className="size-5 shrink-0" />
+        <span>Anonyme pour les autres étudiants (pas pour l&apos;équipe du cours)</span>
       </label>
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" className="btn btn-primary" disabled={pending}>
           {pending ? "Envoi…" : "Poser la question"}
         </button>
         <p role="status" aria-live="polite" className={state && !state.ok ? "form-error" : "text-sm text-ok"}>
-          {state ? (state.ok ? "Question envoyée : l'équipe du cours est prévenue." : state.error) : ""}
+          {state ? (state.ok ? "Question envoyée." : state.error) : ""}
         </p>
       </div>
     </form>

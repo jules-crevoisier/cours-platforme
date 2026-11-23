@@ -6,14 +6,8 @@ import { isSignificantGap } from "@/lib/competences";
 /** Résultat standard des Server Actions */
 export type ActionResult = { ok: true; message?: string } | { ok: false; error: string };
 
+/** Statut enregistré d'une auto-évaluation (affichage : `AssessmentStatusBadge` de @/components/ui) */
 export type AssessmentStatusValue = "DRAFT" | "SUBMITTED";
-
-/** Statut d'une auto-évaluation, y compris « pas encore créée » */
-export const STATUS_LABELS: Record<AssessmentStatusValue | "NONE", string> = {
-  NONE: "Pas commencée",
-  DRAFT: "Brouillon",
-  SUBMITTED: "Soumise",
-};
 
 const TIME_ZONE = "Europe/Paris";
 
@@ -48,7 +42,7 @@ export function formatNumber(value: number) {
 }
 
 export function describeLevel(level: number) {
-  return `${level}/4 · ${levelLabel(level)}`;
+  return `${level}/4 — ${levelLabel(level)}`;
 }
 
 /** Premier message d'erreur lisible d'un résultat zod */

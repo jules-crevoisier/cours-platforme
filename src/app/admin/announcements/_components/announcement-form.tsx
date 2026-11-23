@@ -16,12 +16,7 @@ export function AnnouncementForm({ action, allowGlobal, cohorts }: Props) {
   const [scope, setScope] = useState<"GLOBAL" | "COHORT">(allowCohort || !allowGlobal ? "COHORT" : "GLOBAL");
 
   if (!allowGlobal && !allowCohort) {
-    return (
-      <p className="text-sm text-muted">
-        Aucune promo n&apos;existe encore : un administrateur doit d&apos;abord créer les promos pour que vous puissiez leur
-        écrire.
-      </p>
-    );
+    return <p className="text-muted">Aucune promo.</p>;
   }
 
   return (
@@ -41,12 +36,12 @@ export function AnnouncementForm({ action, allowGlobal, cohorts }: Props) {
             />
             <span>
               Une promo
-              {!allowCohort && <span className="text-sm text-muted"> (aucune promo créée)</span>}
+              {!allowCohort && <span className="text-muted"> (aucune)</span>}
             </span>
           </label>
           <label className="flex min-h-11 cursor-pointer items-center gap-3">
             <input type="radio" name="scope" value="GLOBAL" checked={scope === "GLOBAL"} onChange={() => setScope("GLOBAL")} className="size-5" />
-            <span>Tout le monde (annonce globale)</span>
+            <span>Tout le monde</span>
           </label>
         </fieldset>
       ) : (
@@ -90,24 +85,14 @@ export function AnnouncementForm({ action, allowGlobal, cohorts }: Props) {
           required
           rows={6}
           maxLength={5000}
-          className="input py-2"
-          aria-describedby="announcement-body-hint"
+          className="input"
         />
-        <p id="announcement-body-hint" className="mt-1 text-xs text-muted">
-          Texte brut : les retours à la ligne sont conservés, aucune mise en forme n&apos;est interprétée.
-        </p>
       </div>
 
       <label className="flex min-h-11 cursor-pointer items-center gap-3">
         <input type="checkbox" name="pinned" className="size-5" />
         <span>Épingler en haut de l&apos;accueil</span>
       </label>
-
-      <p className="text-sm text-muted">
-        {scope === "GLOBAL"
-          ? "Chaque utilisateur recevra une notification."
-          : "Chaque membre de la promo recevra une notification."}
-      </p>
 
       <div>
         <SubmitButton pendingLabel="Publication…">Publier l&apos;annonce</SubmitButton>

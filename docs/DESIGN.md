@@ -1,60 +1,54 @@
-# Direction visuelle — « la table de montage »
+# Design — simple, carré, lisible
 
-**Thèse.** Un outil de travail calme, dense et lisible, qui ressemble à ce que les étudiants MMI utilisent
-(Linear, Notion, Figma) plutôt qu'à un ENT. Le contenu (cours, sujets) respire comme une doc (GitBook, Outline) ;
-le suivi (jalons, auto-évaluations) est précis comme un outil de production. Une seule signature :
-**la piste de montage** — les jalons d'une SAÉ posés comme des clips sur une timeline, tête de lecture = aujourd'hui.
+**Principe.** Un outil de travail qu'on comprend sans lire de mode d'emploi. Chaque page a un titre, son contenu
+et une ou deux actions. Ce qui ne sert pas à agir ou à lire le cours n'est pas affiché.
 
-Références (vues en vrai, 320 et 1280 px) : Linear, Outline, Are.na, Stripe Docs, GitBook, Notion Calendar,
-OpenClassrooms (en-tête de cours), Pittogramma (étiquettes mono). Détails : `.orchestrator/inspiration.md`.
+## Règles (non négociables)
+1. **Tout est carré** : aucun arrondi (les tokens `--radius-*` valent 0 ; ne pas ajouter de `rounded-full`).
+2. **Une seule police** : Archivo (variable, `next/font`). Titres en 700 élargis (`font-stretch: 112%`).
+   Pas de police mono, sauf pour du vrai code ou une URL à copier (`font-mono` = mono système).
+3. **Un seul accent** : bleu électrique `--accent`, pour l'action principale, l'élément actif et les liens.
+   Jamais pour un statut.
+4. **Pas de surtitre** au-dessus des titres, pas de capitales espacées, pas de numérotation décorative (01, 02…).
+5. **Pas de phrase d'explication** sous un titre ou dans une section. Au plus une ligne factuelle (dates, groupe).
+   Les états vides tiennent en une ligne (« Aucun jalon. ») + un bouton si une action existe.
+6. **Pas de « · »** pour coller des informations : une info par élément, mise en page avec des espaces.
+7. **Un badge maximum par ligne.** Un badge = un carré de couleur + un mot (`.badge`, `StatusBadge`).
+8. **Une action n'apparaît qu'une fois** par page. Pas de lien en double vers la même destination.
 
-## Typographie
-- Titres : **Bricolage Grotesque** 600 (Google Fonts, `next/font`), `text-wrap: balance`, interlignage 1.15.
-- Texte : **Source Sans 3** 400/600, 16 px, interlignage 1.6, mesure 65–70ch pour la lecture.
-- Étiquettes / codes (SAÉ 2.03, AC14.02, J-3, dates, compteurs) : **JetBrains Mono** 500, 12–13 px, chiffres tabulaires.
-- Échelle 1.25 : 13 · 16 · 20 · 25 · 31 (· 39 pour le H1 d'accueil en desktop).
-
-## Couleurs (tokens dans `globals.css`, jamais de valeur en dur dans les pages)
-| Token | Valeur | Usage |
+## Couleurs (tokens dans `globals.css`, jamais de valeur en dur)
+| Token | Clair | Usage |
 |---|---|---|
-| `--bg` | #F7F5F0 | fond (neutre chaud) |
-| `--surface` | #FFFFFF | cartes, éditeur |
-| `--sunken` | #EFECE5 | zones en retrait, survols, sidebar |
-| `--ink` | #1C1A17 | texte (15.9:1) |
-| `--muted` | #5F5A52 | texte secondaire (6.3:1) |
-| `--line` | #E2DDD3 | filets 1 px |
-| `--accent` / `--accent-soft` | #2448C8 / #E9EDFB | action principale, état actif, lien — **jamais un statut** |
-| `--ok` / `--ok-soft` | #16692E / #E6F2E9 | soumis, accessible, publié |
-| `--warn` / `--warn-soft` | #8A5300 / #FBF0D9 | < 72 h, brouillon, à vérifier |
-| `--danger` / `--danger-soft` | #B42318 / #FCEBE8 | en retard, lien cassé, suppression |
-Couleurs de compétence (radar, pastilles AC) : C1 #2F6F9F · C2 #8A5A00 · C3 #B3325A · C4 #2E7D4F · C5 #6A4BB3.
-Mode sombre : tokens redéfinis sous `prefers-color-scheme: dark` (ink/bg inversés, accent éclairci ≥ 4.5:1).
+| `--bg` / `--surface` | #FFFFFF | fond, cartes |
+| `--sunken` | #F4F4F3 | barre latérale, survols |
+| `--ink` | #111111 | texte |
+| `--muted` | #5E5E5B | texte secondaire |
+| `--line` / `--line-strong` | #E6E6E3 / #7D7D79 | filets / bords des champs |
+| `--accent` | #2244FF | action, actif, lien |
+| `--ok` `--warn` `--danger` (+ `-soft`) | vert / ambre / rouge | statuts uniquement |
+
+Thème clair par défaut. Le thème sombre existe (`[data-theme="dark"]`), il s'active depuis le menu du compte
+(cookie `theme`) ; le réglage du système n'est pas suivi.
 
 ## Mise en page
-- **≥ 1024 px** : sidebar fixe 240 px (fond `--sunken`), sections en étiquettes mono, élément actif = pastille `--accent-soft`.
-- **< 1024 px** : barre haute (titre + recherche + cloche) et **barre d'onglets basse** (Accueil, À faire, Cours, SAÉ, Moi), cibles 44 px.
-- Pages de lecture : colonne 70ch ; sommaire à gauche en desktop, repliable en haut en mobile.
-- Accueil : une **liste « À rendre » triée par date**, pas une grille de cartes. Cartes réservées aux SAÉ et à la vitrine.
-- Pas d'ombre portée ; bord 1 px, rayon 8 px (6 px pour les contrôles). Espacements Tailwind (4 px de base) uniquement.
+- **≥ 1024 px** : barre latérale 240 px — logo, cloche, recherche (Ctrl K), Accueil · Cours · SAÉ · Vitrine,
+  puis Enseignement / Administration selon le rôle, favoris s'il y en a, menu du compte en bas.
+- **< 1024 px** : barre haute (logo, recherche, cloche, menu) + barre d'onglets basse (4 entrées).
+- **En-tête de page** : `PageHeader` partout — fil d'Ariane, titre, actions (+ une ligne `meta` factuelle au besoin).
+- **Sections** : un `h2` (`text-xl`), du contenu, pas de trait sous le titre. Espacement entre sections : `gap-10`.
+- **Listes** plutôt que cartes ; cartes (`.card`) pour les cours, SAÉ et projets de la vitrine, avec `Swatch`.
+- **Pages de gestion** découpées en onglets (`Tabs`), jamais une longue page de formulaires.
+- Boutons : 44 px au tactile, 40 px à la souris. Survol d'un bouton = inversion encre / fond.
 
 ## Composants (`src/components/ui/`)
-- `PageHeader` : surtitre mono (ex. « SAÉ 2.03 · S2 »), H1, chapeau, méta, actions à droite.
-- `StatusBadge` : pilule 12 px, fond soft + texte foncé + libellé (jamais la couleur seule).
-- `DeadlineChip` : « J-3 » mono (warn < 72 h, danger en retard) + date absolue en `title`/texte secondaire.
-- `ProgressRing` : anneau 14 px + « 3/5 ».
-- `EmptyState` : phrase utile + action (« Aucun jalon. Ajoutez le premier pour que les étudiants voient l'échéance. »).
-- `MilestoneTrack` (signature) : piste horizontale (vertical < 768 px), clips = jalons (couleur selon statut),
-  tête de lecture accent = aujourd'hui, timecode mono « S04 · J-3 ». Statique si `prefers-reduced-motion`.
-- `CompetenceRadar` : SVG 5 axes, polygone auto (trait) vs enseignant (plein léger), légende texte.
+`PageHeader` + `Breadcrumbs` · `EmptyState` (une ligne + action) · `StatusBadge` / `AssessmentStatusBadge` ·
+`DeadlineChip` (une seule info : « Demain », « Dans 3 jours », puis la date) · `MilestoneSteps` (frise des jalons) ·
+`Tabs` · `Swatch` (carré de couleur + initiales, stable par identifiant) · `Icon` (trait, angles droits).
 
-## Mouvement
-150–250 ms, une seule courbe (`cubic-bezier(.2,.7,.2,1)`), uniquement : survols, ouverture de tiroirs, apparition
-des toasts. Tout est coupé sous `prefers-reduced-motion`.
+## Vocabulaire
+Paramètres (pas Réglages) · Mon profil · Auto-évaluation « Non commencée / Brouillon / Soumise » ·
+Évaluation entre pairs · Pagination « Précédent / Suivant » · Filtre « Filtrer / Effacer ».
 
-## Accessibilité (RGAA 4.1 / WCAG 2.1 AA — obligation légale d'un établissement public)
-Contrastes AA, focus visible 2 px accent, labels visibles, `aria-live` pour les enregistrements, pas d'information
-portée par la seule couleur, navigation clavier complète, page `/accessibilite` (déclaration).
-
-## Risque assumé
-Trois familles de polices : gain d'identité (titres, codes) contre ~60 ko de fontes ; on limite les graisses
-(Bricolage 600, Source Sans 400/600, JetBrains 500) et `next/font` les auto-héberge.
+## Accessibilité (RGAA 4.1 / WCAG 2.1 AA — obligation légale)
+Contrastes AA, focus visible 2 px accent, labels visibles, `aria-live` pour les enregistrements, jamais la couleur
+seule, navigation clavier complète, mention « Accessibilité : non conforme » en pied de page (lien vers la déclaration).

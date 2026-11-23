@@ -5,21 +5,17 @@ import { db } from "@/lib/db";
 import { assertAllowed, requireUser } from "@/lib/session";
 import { canEvaluateAssessment } from "@/lib/permissions";
 import { PROVIDER_LABELS } from "@/lib/deposit";
-import {
-  criterionSelect,
-  feedbackStatus,
-  formatDateTime,
-  toCriterionView,
-} from "@/app/assessments/_lib/shared";
-import { BackLink, FeedbackStatusBadge, LinkStatusBadge } from "@/app/assessments/_lib/ui";
+import { criterionSelect, feedbackStatus, formatDateTime, toCriterionView } from "@/app/assessments/_lib/shared";
+import { FeedbackStatusBadge, LinkStatusBadge } from "@/app/assessments/_lib/ui";
 import { CriteriaComparison } from "@/app/assessments/_lib/comparison";
 import { ConfirmActionButton } from "@/app/assessments/_lib/confirm-action-button";
 import { TeacherFeedbackForm } from "@/app/assessments/_lib/teacher-feedback-form";
 import { listMySnippets } from "@/app/assessments/_lib/snippets";
 import { saveTeacherFeedback, unpublishFeedback } from "@/app/assessments/[assessmentId]/actions";
+import { EmptyState, PageHeader, Tabs, type Crumb } from "@/components/ui";
 import { QueueNav } from "./queue-nav";
 
-export const metadata: Metadata = { title: "File de correction", robots: { index: false } };
+export const metadata: Metadata = { title: "Correction", robots: { index: false } };
 
 type Filter = "all" | "unpublished";
 
@@ -46,16 +42,19 @@ export default async function ReviewQueuePage({ params, searchParams }: PageProp
       milestones: {
         orderBy: [{ position: "asc" }, { dueAt: "asc" }],
         take: 100,
-        select: { id: true, title: true, dueAt: true, requiresDepositUrl: true },
+        select: { id: true, title: true, requiresDepositUrl: true },
       },
     },
   });
   if (!sae) notFound();
   assertAllowed(canEvaluateAssessment(user, sae));
 
-  const saeLabel = `${sae.code ? `${sae.code} — ` : ""}${sae.title}`;
   const milestone = sae.milestones.find((m) => m.id === pick(query.milestone));
   const filter: Filter = pick(query.filter) === "unpublished" ? "unpublished" : "all";
+  const saeCrumbs: Crumb[] = [
+    { label: "SAÉ", href: "/saes" },
+    { label: sae.code ?? sae.title, href: `/saes/${sae.id}` },
+  ];
 
   // ── Pas de jalon choisi : liste des jalons avec leur avancement ──
   if (!milestone) {
@@ -75,35 +74,30 @@ export default async function ReviewQueuePage({ params, searchParams }: PageProp
     const unpublished = new Map(unpublishedByMilestone.map((g) => [g.milestoneId, g._count._all]));
 
     return (
-      <div className="flex flex-col gap-6">
-        <header className="flex flex-col gap-2">
-          <BackLink href={`/saes/${sae.id}`}>{saeLabel}</BackLink>
-          <p className="eyebrow">File de correction</p>
-          <h1 className="text-2xl font-semibold text-balance">Choisir un jalon</h1>
-          <p className="max-w-prose text-sm text-muted">
-            La file présente une à une les auto-évaluations soumises du jalon, par groupe puis par nom, avec votre
-            formulaire de positionnement.
-          </p>
-        </header>
+      <div className="flex flex-col gap-10">
+        <PageHeader breadcrumbs={[...saeCrumbs, { label: "Correction" }]} title="Correction" />
         {sae.milestones.length === 0 ? (
-          <p className="card text-muted">Aucun jalon dans cette SAÉ pour l&apos;instant.</p>
+          <EmptyState>Aucun jalon.</EmptyState>
         ) : (
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col divide-y divide-line">
             {sae.milestones.map((m) => {
               const total = submitted.get(m.id) ?? 0;
               const todo = unpublished.get(m.id) ?? 0;
               return (
-                <li key={m.id} className="card flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex flex-col gap-1">
+                <li key={m.id} className="flex flex-col gap-2 py-4 first:pt-0 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex min-w-0 flex-col gap-1">
                     <span className="font-semibold break-words">{m.title}</span>
-                    <span className="text-sm text-muted">
-                      {m.dueAt ? `Échéance : ${formatDateTime(m.dueAt)}` : "Pas d'échéance"} · {total} soumise
-                      {total > 1 ? "s" : ""} · {todo} sans retour publié
+                    <span className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
+                      <span>
+                        {total} soumise{total > 1 ? "s" : ""}
+                      </span>
+                      <span>{todo} sans retour publié</span>
                     </span>
                   </div>
                   <Link
                     href={`/saes/${sae.id}/review?milestone=${m.id}${todo > 0 ? "&filter=unpublished" : ""}`}
                     className="btn w-full sm:w-auto"
+                    aria-label={`Corriger : ${m.title}`}
                   >
                     Corriger
                   </Link>
@@ -159,11 +153,8 @@ export default async function ReviewQueuePage({ params, searchParams }: PageProp
           submittedAt: true,
           feedbackPublishedAt: true,
           reflection: true,
-          feedbackBy: { select: { name: true } },
           user: { select: { name: true } },
-          group: {
-            select: { id: true, name: true, members: { select: { userId: true, user: { select: { name: true } } } } },
-          },
+          group: { select: { id: true, name: true } },
           items: {
             select: { criterionId: true, level: true, justification: true, teacherLevel: true, teacherComment: true },
           },
@@ -202,182 +193,150 @@ export default async function ReviewQueuePage({ params, searchParams }: PageProp
   });
 
   return (
-    <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-3">
-        <BackLink href={`/saes/${sae.id}/milestones/${milestone.id}`}>{milestone.title}</BackLink>
-        <p className="eyebrow">File de correction · {saeLabel}</p>
-        <h1 className="text-2xl font-semibold text-balance break-words">{milestone.title}</h1>
+    <div className="flex flex-col gap-10">
+      <div className="flex flex-col gap-6">
+        <PageHeader
+          breadcrumbs={[
+            ...saeCrumbs,
+            { label: milestone.title, href: `/saes/${sae.id}/milestones/${milestone.id}` },
+            { label: "Correction" },
+          ]}
+          title="Correction"
+        />
 
-        <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-end md:justify-between">
-          <form method="get" action={`/saes/${sae.id}/review`} className="flex flex-col gap-2 sm:flex-row sm:items-end">
-            <div className="sm:min-w-64">
-              <label htmlFor="milestone-select" className="label">
-                Jalon
-              </label>
-              <select id="milestone-select" name="milestone" defaultValue={milestone.id} className="input">
-                {sae.milestones.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {filter === "unpublished" && <input type="hidden" name="filter" value="unpublished" />}
-            <button type="submit" className="btn">
-              Afficher
-            </button>
-          </form>
-
-          <div role="group" aria-label="Filtrer la file" className="flex flex-wrap gap-2">
-            <Link
-              href={filterHref("all")}
-              aria-current={filter === "all" ? "page" : undefined}
-              className={`btn ${filter === "all" ? "border-accent bg-accent-soft text-accent" : ""}`}
-            >
-              Toutes les soumises ({totalSubmitted})
-            </Link>
-            <Link
-              href={filterHref("unpublished")}
-              aria-current={filter === "unpublished" ? "page" : undefined}
-              className={`btn ${filter === "unpublished" ? "border-accent bg-accent-soft text-accent" : ""}`}
-            >
-              Sans retour publié ({unpublishedCount})
-            </Link>
+        <form method="get" action={`/saes/${sae.id}/review`} className="flex flex-col gap-2 sm:flex-row sm:items-end">
+          <div className="sm:min-w-64">
+            <label htmlFor="milestone-select" className="label">
+              Jalon
+            </label>
+            <select id="milestone-select" name="milestone" defaultValue={milestone.id} className="input">
+              {sae.milestones.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.title}
+                </option>
+              ))}
+            </select>
           </div>
-        </div>
-      </header>
+          {filter === "unpublished" && <input type="hidden" name="filter" value="unpublished" />}
+          <button type="submit" className="btn">
+            Afficher
+          </button>
+        </form>
+
+        <Tabs
+          label="Filtrer la file"
+          items={[
+            { href: filterHref("all"), label: "Toutes les soumises", active: filter === "all", count: totalSubmitted },
+            {
+              href: filterHref("unpublished"),
+              label: "Sans retour publié",
+              active: filter === "unpublished",
+              count: unpublishedCount,
+            },
+          ]}
+        />
+      </div>
 
       {!current ? (
-        <div className="card flex flex-col items-start gap-3">
-          {totalSubmitted === 0 ? (
-            <p>Aucune auto-évaluation soumise pour ce jalon pour l&apos;instant.</p>
-          ) : (
-            <>
-              <p>Tous les retours de ce jalon sont publiés.</p>
-              <Link href={filterHref("all")} className="btn">
-                Revoir toutes les auto-évaluations soumises
-              </Link>
-            </>
-          )}
-          <Link href={`/saes/${sae.id}/milestones/${milestone.id}`} className="text-sm text-accent underline">
-            Retour au suivi du jalon
-          </Link>
-        </div>
+        <EmptyState>
+          {totalSubmitted === 0 ? "Aucune auto-évaluation soumise." : "Tous les retours sont publiés."}
+        </EmptyState>
       ) : (
         <>
-          <QueueNav
-            prevHref={prevHref}
-            nextHref={nextHref}
-            position={index + 1}
-            total={list.length}
-            label="Navigation dans la file (haut)"
-            shortcuts
-          />
+          <QueueNav prevHref={prevHref} nextHref={nextHref} position={index + 1} total={list.length} />
 
-          <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
-            <section aria-labelledby="student-title" className="flex flex-col gap-5">
-              <div className="card flex flex-col gap-2">
-                <p className="eyebrow">Étudiant·e</p>
-                <h2 id="student-title" className="text-xl font-semibold break-words">
+          <div className="grid gap-10 lg:grid-cols-2 lg:items-start">
+            <section aria-labelledby="student-title" className="flex flex-col gap-8">
+              <div className="flex flex-col gap-2">
+                <h2 id="student-title" className="text-xl break-words">
                   {current.user.name}
                 </h2>
-                <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
+                <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
                   <dt className="text-muted">Groupe</dt>
                   <dd className="break-words">
                     {current.group ? (
-                      <Link href={`/saes/${sae.id}/groups/${current.group.id}`} className="text-accent underline">
+                      <Link href={`/saes/${sae.id}/groups/${current.group.id}`} className="link">
                         {current.group.name}
                       </Link>
                     ) : (
                       "—"
                     )}
                   </dd>
-                  {current.group && (
-                    <>
-                      <dt className="text-muted">Membres</dt>
-                      <dd className="break-words">{current.group.members.map((m) => m.user.name).join(", ")}</dd>
-                    </>
-                  )}
                   <dt className="text-muted">Soumise le</dt>
                   <dd>{current.submittedAt ? formatDateTime(current.submittedAt) : "—"}</dd>
                   <dt className="text-muted">Commentaires</dt>
                   <dd>{current._count.comments}</dd>
                 </dl>
-                <Link href={`/assessments/${current.id}`} className="inline-flex min-h-11 items-center text-sm text-accent underline">
-                  Ouvrir la page complète (commentaires, réouverture)
+                <Link href={`/assessments/${current.id}`} className="link inline-flex min-h-11 items-center self-start text-sm">
+                  Page complète
                 </Link>
               </div>
 
               <div className="flex flex-col gap-2">
-                <h3 className="font-semibold">Dépôts du groupe pour ce jalon</h3>
+                <h3 className="text-base">Dépôts</h3>
                 {depositLinks.length === 0 ? (
-                  <p className={`text-sm ${milestone.requiresDepositUrl ? "rounded-md bg-danger-soft p-3 text-danger" : "text-muted"}`}>
-                    Aucune URL déposée pour ce jalon{milestone.requiresDepositUrl ? " alors qu'un dépôt est requis" : ""}.
+                  <p className={`text-sm ${milestone.requiresDepositUrl ? "text-danger" : "text-muted"}`}>
+                    Aucune URL déposée{milestone.requiresDepositUrl ? " (dépôt requis)" : ""}.
                   </p>
                 ) : (
-                  <ul className="flex flex-col gap-2">
+                  <ul className="flex flex-col divide-y divide-line">
                     {depositLinks.map((link) => (
-                      <li key={link.id} className="flex flex-col gap-1 rounded-md border border-line bg-surface p-3">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="badge">{PROVIDER_LABELS[link.provider]}</span>
-                          <LinkStatusBadge status={link.checkStatus} checkedAt={link.checkedAt} />
-                        </div>
+                      <li key={link.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2">
                         {isHttpUrl(link.url) ? (
                           <a
                             href={link.url}
                             target="_blank"
                             rel="noopener noreferrer nofollow"
-                            className="inline-flex min-h-11 items-center break-all text-accent underline"
+                            title={`${PROVIDER_LABELS[link.provider]} — ${link.url}`}
+                            className="link inline-flex min-h-11 min-w-0 items-center break-all"
                           >
                             {link.label ?? link.url}
                             <span className="sr-only"> (nouvel onglet)</span>
                           </a>
                         ) : (
-                          <span className="break-all">{link.label ?? link.url}</span>
+                          <span className="min-w-0 break-all">{link.label ?? link.url}</span>
                         )}
-                        {link.checkNote && link.checkStatus && link.checkStatus !== "OK" && (
-                          <p className="text-sm text-muted">{link.checkNote}</p>
-                        )}
+                        <LinkStatusBadge
+                          status={link.checkStatus}
+                          checkedAt={link.checkedAt}
+                          note={link.checkNote}
+                        />
                       </li>
                     ))}
                   </ul>
                 )}
               </div>
 
-              <div className="flex flex-col gap-2">
-                <h3 className="font-semibold">Auto-positionnement</h3>
+              <div className="flex flex-col gap-3">
+                <h3 className="text-base">Auto-positionnement</h3>
                 <CriteriaComparison criteria={criteria} showTeacher={false} headingLevel={4} />
               </div>
 
               <div className="flex flex-col gap-2">
-                <h3 className="font-semibold">Réflexion globale</h3>
+                <h3 className="text-base">Réflexion globale</h3>
                 {current.reflection ? (
-                  <p className="card max-w-prose break-words whitespace-pre-line">{current.reflection}</p>
+                  <p className="max-w-prose break-words whitespace-pre-line">{current.reflection}</p>
                 ) : (
                   <p className="text-sm text-muted">Aucune réflexion rédigée.</p>
                 )}
               </div>
             </section>
 
-            <section aria-labelledby="teacher-title" className="flex flex-col gap-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 id="teacher-title" className="text-xl font-semibold">
+            <section aria-labelledby="teacher-title" className="flex flex-col gap-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 id="teacher-title" className="text-xl">
                   Positionnement enseignant
                 </h2>
-                <FeedbackStatusBadge status={feedbackStatus(current)} />
+                {!current.feedbackPublishedAt && <FeedbackStatusBadge status={feedbackStatus(current)} />}
               </div>
               {current.feedbackPublishedAt && (
-                <div className="flex flex-wrap items-center gap-3 text-sm text-muted">
-                  <span>
-                    Publié le {formatDateTime(current.feedbackPublishedAt)}
-                    {current.feedbackBy ? ` par ${current.feedbackBy.name}` : ""}
-                  </span>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted">
+                  <span>Publié le {formatDateTime(current.feedbackPublishedAt)}</span>
                   <ConfirmActionButton
                     action={unpublishFeedback.bind(null, current.id)}
                     label="Dépublier"
                     pendingLabel="Dépublication…"
                     confirmMessage="Dépublier ce retour ? L'étudiant·e ne le verra plus jusqu'à la prochaine publication."
-                    className="text-ink"
                   />
                 </div>
               )}
@@ -391,14 +350,6 @@ export default async function ReviewQueuePage({ params, searchParams }: PageProp
               />
             </section>
           </div>
-
-          <QueueNav
-            prevHref={prevHref}
-            nextHref={nextHref}
-            position={index + 1}
-            total={list.length}
-            label="Navigation dans la file (bas)"
-          />
         </>
       )}
     </div>

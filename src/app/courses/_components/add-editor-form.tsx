@@ -9,7 +9,7 @@ export function AddEditorForm({ action }: { action: FormAction }) {
   return (
     <form action={formAction} className="flex flex-col gap-2">
       <label htmlFor="editor-email" className="label">
-        Ajouter un co-éditeur (e-mail d&apos;un enseignant)
+        E-mail d&apos;un enseignant
       </label>
       <div className="flex flex-col gap-2 sm:flex-row">
         <input

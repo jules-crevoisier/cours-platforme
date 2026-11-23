@@ -1,26 +1,15 @@
 // Petits composants d'affichage (sans état) réutilisés par les pages du slice.
-import Link from "next/link";
+// Le statut d'une auto-évaluation : `AssessmentStatusBadge` de @/components/ui (implémentation unique).
 import { levelLabel } from "@/lib/assessment";
 import { LINK_STATUS_LABELS, type LinkCheckStatus } from "@/lib/link-check-core";
-import {
-  FEEDBACK_STATUS_LABELS,
-  STATUS_LABELS,
-  type AssessmentStatusValue,
-  type CriterionView,
-  type FeedbackStatus,
-} from "./shared";
+import { StatusBadge, type StatusTone } from "@/components/ui";
+import { FEEDBACK_STATUS_LABELS, formatDateTime, type CriterionView, type FeedbackStatus } from "./shared";
 
-/** Badge de statut : le texte porte l'information, la couleur n'est qu'un complément */
-export function StatusBadge({ status }: { status: AssessmentStatusValue | null }) {
-  const key = status ?? "NONE";
-  const tone = key === "SUBMITTED" ? "badge-ok" : key === "DRAFT" ? "badge-warn" : "";
-  return <span className={`badge ${tone}`}>{STATUS_LABELS[key]}</span>;
-}
+const FEEDBACK_TONE: Record<FeedbackStatus, StatusTone> = { NONE: "neutral", DRAFT: "warn", PUBLISHED: "ok" };
 
 /** Statut du retour enseignant : Non commencé / Brouillon / Publié */
 export function FeedbackStatusBadge({ status }: { status: FeedbackStatus }) {
-  const tone = status === "PUBLISHED" ? "badge-ok" : status === "DRAFT" ? "badge-warn" : "";
-  return <span className={`badge ${tone}`}>{FEEDBACK_STATUS_LABELS[status]}</span>;
+  return <StatusBadge tone={FEEDBACK_TONE[status]}>{FEEDBACK_STATUS_LABELS[status]}</StatusBadge>;
 }
 
 /**
@@ -41,10 +30,7 @@ export function LevelMeter({
     <span className="inline-flex flex-wrap items-center gap-2">
       <span className="inline-flex gap-1" aria-hidden="true">
         {[1, 2, 3, 4].map((step) => (
-          <span
-            key={step}
-            className={`h-3 w-5 rounded-sm border ${step <= level ? filled : "border-line bg-bg"}`}
-          />
+          <span key={step} className={`h-3 w-5 border ${step <= level ? filled : "border-line bg-bg"}`} />
         ))}
       </span>
       <span className="text-sm font-medium">
@@ -58,9 +44,13 @@ export function LevelMeter({
 /** Écart auto / enseignant ≥ 2 niveaux : signalé par un texte, pas seulement une couleur */
 export function GapFlag({ self, teacher }: { self: number; teacher: number }) {
   return (
-    <span className="badge badge-warn font-medium">
-      Écart important · auto {self} / enseignant {teacher}
-    </span>
+    <StatusBadge tone="warn">
+      Écart important
+      <span className="sr-only">
+        {" "}
+        (auto {self}, enseignant {teacher})
+      </span>
+    </StatusBadge>
   );
 }
 
@@ -75,34 +65,47 @@ export function CriterionHeading({
   const Heading = level === 3 ? "h3" : "h4";
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex flex-wrap items-baseline gap-2">
-        {criterion.code && <span className="badge font-mono text-ink">{criterion.code}</span>}
-        <Heading className="font-semibold break-words">{criterion.label}</Heading>
-      </div>
+      {criterion.code && <span className="text-sm text-muted">{criterion.code}</span>}
+      <Heading className="text-base break-words">{criterion.label}</Heading>
       {criterion.learningLabel && <p className="text-sm break-words text-muted">{criterion.learningLabel}</p>}
     </div>
   );
 }
 
-/** Résultat de la vérification automatique d'un lien de dépôt */
-export function LinkStatusBadge({ status, checkedAt }: { status: LinkCheckStatus | null; checkedAt?: Date | null }) {
-  if (!status) return <span className="badge">Non vérifié</span>;
-  const tone = status === "OK" ? "badge-ok" : status === "BROKEN" ? "badge-danger" : "badge-warn";
-  return (
-    <span
-      className={`badge ${tone}`}
-      title={checkedAt ? `Vérifié le ${checkedAt.toLocaleString("fr-FR", { timeZone: "Europe/Paris" })}` : undefined}
-    >
-      {LINK_STATUS_LABELS[status]}
-    </span>
-  );
-}
+const LINK_TONE: Record<LinkCheckStatus, StatusTone> = {
+  OK: "ok",
+  PRIVATE: "warn",
+  BROKEN: "danger",
+  UNREACHABLE: "warn",
+};
 
-export function BackLink({ href, children }: { href: string; children: React.ReactNode }) {
+/**
+ * Résultat de la vérification automatique d'un lien de dépôt : un seul badge.
+ * Le détail (explication, code HTTP, date de vérification) est dans `title` et lu par les lecteurs d'écran.
+ */
+export function LinkStatusBadge({
+  status,
+  checkedAt,
+  note,
+  http,
+}: {
+  status: LinkCheckStatus | null;
+  checkedAt?: Date | null;
+  note?: string | null;
+  http?: number | null;
+}) {
+  if (!status) return <StatusBadge>Non vérifié</StatusBadge>;
+  const detail = [
+    status !== "OK" ? note : null,
+    http != null ? `HTTP ${http}` : null,
+    checkedAt ? `Vérifié le ${formatDateTime(checkedAt)}` : null,
+  ]
+    .filter(Boolean)
+    .join(". ");
   return (
-    <Link href={href} className="inline-flex min-h-11 items-center gap-1 text-sm text-muted hover:text-ink hover:underline">
-      <span aria-hidden="true">←</span>
-      {children}
-    </Link>
+    <span title={detail || undefined}>
+      <StatusBadge tone={LINK_TONE[status]}>{LINK_STATUS_LABELS[status]}</StatusBadge>
+      {detail && <span className="sr-only"> ({detail})</span>}
+    </span>
   );
 }

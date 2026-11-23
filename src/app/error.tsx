@@ -20,18 +20,16 @@ export default function ErrorPage({ error, retry }: { error: Error & { digest?: 
             Réessayer
           </button>
           <Link href="/" className="btn">
-            Retour à l&apos;accueil
+            Accueil
           </Link>
         </>
       }
     >
-      <p>
-        Réessayez dans un instant : ce que vous aviez déjà enregistré n&apos;est pas perdu. Si le problème persiste,
-        transmettez le code ci-dessous à l&apos;administrateur de la plateforme.
-      </p>
+      <p>Ce que vous aviez enregistré n&apos;est pas perdu.</p>
+      {/* Identifiant à transmettre à l'administrateur : seul usage justifié de la police mono */}
       {error.digest && (
         <p>
-          Code : <code className="rounded-sm bg-sunken px-1.5 py-0.5 font-mono text-sm text-ink">{error.digest}</code>
+          Code : <code className="bg-sunken px-1.5 py-0.5 font-mono text-sm text-ink select-all">{error.digest}</code>
         </p>
       )}
     </StatusView>

@@ -24,16 +24,15 @@ export function DepositForm({ action, milestones }: Props) {
   }
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="card flex flex-col gap-4" aria-describedby="deposit-help">
-      <h3 className="text-base font-semibold">Ajouter une URL de dépôt</h3>
-      <p id="deposit-help" className="text-sm text-muted">
-        Aucun fichier n&apos;est hébergé ici : collez le lien vers votre dépôt (GitHub, GitLab, Google Drive, OneDrive,
-        Figma…). Le lien est vérifié automatiquement : il doit être accessible sans connexion.
-      </p>
+    <form ref={formRef} onSubmit={handleSubmit} aria-labelledby="deposit-form-title" className="flex flex-col gap-4">
+      <h3 id="deposit-form-title" className="text-base">
+        Ajouter une URL
+      </h3>
 
       <div>
         <label htmlFor="deposit-url" className="label">
-          URL <span className="text-danger">*</span>
+          URL <span className="text-danger">*</span>{" "}
+          <span className="font-normal text-muted">(accessible sans connexion)</span>
         </label>
         <input
           id="deposit-url"

@@ -80,7 +80,7 @@ export function CriterionFields({ idPrefix, defaults, defaultLevel }: Props) {
       </div>
       <div className="min-w-0">
         <label htmlFor={f("learningId")} className="label">
-          Apprentissage critique <span className="font-normal text-muted">(référentiel)</span>
+          Apprentissage critique
         </label>
         <select
           id={f("learningId")}
@@ -88,11 +88,10 @@ export function CriterionFields({ idPrefix, defaults, defaultLevel }: Props) {
           className="input"
           value={learningId}
           onChange={(e) => setLearningId(e.target.value)}
-          aria-describedby={f("learning-hint")}
         >
           <option value="">Aucun — code libre</option>
           {visible.map((g) => (
-            <optgroup key={g.code} label={`${g.code} · ${g.name}`}>
+            <optgroup key={g.code} label={`${g.code} — ${g.name}`}>
               {g.learnings.map((l) => (
                 <option key={l.id} value={l.id}>
                   {acOptionLabel(l.code, l.label)}
@@ -101,13 +100,6 @@ export function CriterionFields({ idPrefix, defaults, defaultLevel }: Props) {
             </optgroup>
           ))}
         </select>
-        <p id={f("learning-hint")} className="mt-1 text-xs text-muted">
-          {groups.length === 0
-            ? "Le référentiel n'est pas encore chargé en base : utilisez le code libre."
-            : selected
-              ? `Code rattaché : ${selected.code}`
-              : "Choisir un AC relie le critère au portfolio et au radar de compétences."}
-        </p>
       </div>
 
       {selected ? (
@@ -120,7 +112,7 @@ export function CriterionFields({ idPrefix, defaults, defaultLevel }: Props) {
           <input
             id={f("acCode")}
             name="acCode"
-            className="input font-mono"
+            className="input"
             maxLength={30}
             placeholder="AC11.01"
             autoComplete="off"

@@ -32,11 +32,7 @@ export function CohortForm({ action, parcoursOptions, initial, submitLabel, pend
           defaultValue={initial.name}
           placeholder="MMI 1 — TD A"
           className="input"
-          aria-describedby={`${id}-name-hint`}
         />
-        <p id={`${id}-name-hint`} className="mt-1 text-xs text-muted">
-          Unique pour une année universitaire (ex. « MMI 2 — Crea », « MMI 1 — TP B2 »).
-        </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
         <div>
@@ -75,10 +71,10 @@ export function CohortForm({ action, parcoursOptions, initial, submitLabel, pend
           maxLength={9}
           defaultValue={initial.academicYear}
           placeholder="2026-2027"
-          className="input font-mono"
+          className="input"
           aria-describedby={`${id}-ay-hint`}
         />
-        <p id={`${id}-ay-hint`} className="mt-1 text-xs text-muted">
+        <p id={`${id}-ay-hint`} className="mt-1 text-sm text-muted">
           Format 2026-2027.
         </p>
       </div>

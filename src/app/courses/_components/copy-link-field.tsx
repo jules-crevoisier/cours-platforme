@@ -18,9 +18,9 @@ export function CopyLinkField({ path, label }: { path: string; label: string }) 
   async function copy() {
     try {
       await navigator.clipboard.writeText(url);
-      setStatus("Lien copié dans le presse-papiers.");
+      setStatus("Lien copié.");
     } catch {
-      setStatus("Copie impossible : sélectionnez le lien et copiez-le manuellement.");
+      setStatus("Copie impossible : sélectionnez le lien.");
     }
   }
 
@@ -38,7 +38,7 @@ export function CopyLinkField({ path, label }: { path: string; label: string }) 
           onFocus={(e) => e.currentTarget.select()}
         />
         <button type="button" className="btn shrink-0" onClick={copy}>
-          Copier le lien
+          Copier
         </button>
       </div>
       <p role="status" aria-live="polite" className="text-sm text-muted">

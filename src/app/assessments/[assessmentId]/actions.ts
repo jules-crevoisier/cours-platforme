@@ -111,7 +111,7 @@ export async function addComment(
     [assessment.userId, ...staff],
     {
       type: "comment",
-      title: `Nouveau commentaire · ${assessment.milestone.title}`,
+      title: `Nouveau commentaire — ${assessment.milestone.title}`,
       body: `${user.name} sur l'auto-évaluation de ${assessment.user.name} : « ${excerpt(parsed.data.body)} »`,
       link: `/assessments/${assessment.id}`,
     },
@@ -168,7 +168,7 @@ export async function reopenAssessment(assessmentId: string): Promise<ActionResu
     [assessment.userId],
     {
       type: "reopen",
-      title: `Auto-évaluation rouverte · ${assessment.milestone.title}`,
+      title: `Auto-évaluation rouverte — ${assessment.milestone.title}`,
       body: `${user.name} a rouvert votre auto-évaluation : vous pouvez la modifier puis la soumettre à nouveau.`,
       link: assessHref,
     },

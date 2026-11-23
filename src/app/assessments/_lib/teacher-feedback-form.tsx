@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { startTransition, useActionState, useEffect, useState, type FormEvent } from "react";
 import { LEVELS } from "@/lib/assessment";
 import { isSignificantGap } from "@/lib/competences";
+import { EmptyState } from "@/components/ui";
 import { MAX_BODY, type ActionResult, type CriterionView, type SnippetView } from "./shared";
 import { SnippetPicker } from "./snippet-picker";
 import { CriterionHeading, GapFlag, LevelMeter } from "./ui";
@@ -77,13 +78,7 @@ export function TeacherFeedbackForm({
     startTransition(() => dispatch(formData));
   }
 
-  if (criteria.length === 0) {
-    return (
-      <p className="card text-muted">
-        Aucun critère pour ce jalon : utilisez les commentaires pour faire votre retour.
-      </p>
-    );
-  }
+  if (criteria.length === 0) return <EmptyState>Aucun critère.</EmptyState>;
 
   return (
     <form
@@ -95,7 +90,7 @@ export function TeacherFeedbackForm({
       data-dirty={dirty ? "true" : undefined}
       className="flex flex-col gap-4"
     >
-      <ol className="flex flex-col gap-4">
+      <ol className="flex flex-col divide-y divide-line">
         {criteria.map((criterion) => {
           const baseId = `feedback-${criterion.id}`;
           const current = levels[criterion.id] ?? NONE;
@@ -103,14 +98,11 @@ export function TeacherFeedbackForm({
           const selfLevel = criterion.self?.level ?? null;
           const gap = isSignificantGap(selfLevel, teacherLevel);
           return (
-            <li key={criterion.id} className="card flex flex-col gap-3">
+            <li key={criterion.id} className="flex flex-col gap-3 py-5 first:pt-0">
               <CriterionHeading criterion={criterion} />
 
               {criterion.self === null ? (
-                <p className="text-sm text-muted">
-                  L&apos;étudiant·e ne s&apos;est pas positionné·e sur ce critère (ajouté après la soumission) :
-                  positionnement enseignant impossible.
-                </p>
+                <p className="text-sm text-muted">Critère non renseigné par l&apos;étudiant·e.</p>
               ) : (
                 <div className={showJustifications ? "grid gap-4 md:grid-cols-2" : "flex flex-col gap-3"}>
                   <div className="flex flex-col gap-2">
@@ -137,7 +129,7 @@ export function TeacherFeedbackForm({
                             <label
                               key={level.value}
                               htmlFor={inputId}
-                              className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-line px-3 py-2 has-[:checked]:border-ink has-[:checked]:bg-sunken"
+                              className="flex min-h-11 cursor-pointer items-center gap-3 border border-line px-3 py-2 has-[:checked]:border-ink has-[:checked]:bg-sunken"
                             >
                               <input
                                 id={inputId}
@@ -156,7 +148,7 @@ export function TeacherFeedbackForm({
                         })}
                         <label
                           htmlFor={`${baseId}-level-none`}
-                          className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-dashed border-line px-3 py-2 has-[:checked]:border-ink sm:col-span-2"
+                          className="flex min-h-11 cursor-pointer items-center gap-3 border border-dashed border-line px-3 py-2 has-[:checked]:border-ink sm:col-span-2"
                         >
                           <input
                             id={`${baseId}-level-none`}
@@ -181,7 +173,7 @@ export function TeacherFeedbackForm({
                     <div className="flex flex-col gap-2">
                       <label htmlFor={`${baseId}-comment`} className="label mb-0">
                         Commentaire enseignant<span className="sr-only"> — {criterion.label}</span>{" "}
-                        <span className="font-normal text-muted">(optionnel)</span>
+                        <span className="font-normal text-muted">(facultatif)</span>
                       </label>
                       <textarea
                         id={`${baseId}-comment`}
@@ -203,11 +195,6 @@ export function TeacherFeedbackForm({
 
       {editable.length > 0 && (
         <div className="flex flex-col gap-3">
-          <p className="max-w-prose text-sm text-muted">
-            {published
-              ? "Retour publié : les modifications enregistrées sont immédiatement visibles par l'étudiant·e. « Republier » met à jour la date de publication et lui envoie une nouvelle notification."
-              : "Le brouillon n'est visible que par l'équipe pédagogique. « Publier le retour » le rend visible à l'étudiant·e et lui envoie une notification."}
-          </p>
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <button type="submit" name="intent" value="save" className="btn" disabled={pending}>
               {pending ? "Enregistrement…" : published ? "Enregistrer les modifications" : "Enregistrer (brouillon)"}

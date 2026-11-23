@@ -7,7 +7,7 @@ export function NewCourseForm() {
   const [state, formAction, pending] = useActionState(createCourse, null);
 
   return (
-    <form action={formAction} className="card flex flex-col gap-4">
+    <form action={formAction} className="flex flex-col gap-4">
       <div>
         <label htmlFor="new-course-title" className="label">
           Titre

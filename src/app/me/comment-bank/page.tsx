@@ -3,7 +3,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { assertAllowed, requireUser } from "@/lib/session";
 import { isStaff } from "@/lib/permissions";
-import { formatDate } from "@/app/assessments/_lib/shared";
+import { EmptyState, PageHeader } from "@/components/ui";
 import { MAX_SNIPPETS } from "@/app/assessments/_lib/snippets";
 import { ConfirmActionButton } from "@/app/assessments/_lib/confirm-action-button";
 import { createSnippet, deleteSnippet, updateSnippet } from "./actions";
@@ -39,45 +39,36 @@ export default async function CommentBankPage({ searchParams }: PageProps<"/me/c
         ...(tagFilter === UNTAGGED ? { tag: null } : tagFilter ? { tag: tagFilter } : {}),
       },
       orderBy: [{ tag: "asc" }, { createdAt: "desc" }],
-      select: { id: true, tag: true, body: true, createdAt: true },
+      select: { id: true, tag: true, body: true },
       take: MAX_SNIPPETS,
     }),
   ]);
   const tags = tagRows.flatMap((row) => (row.tag ? [{ tag: row.tag, count: row._count._all }] : []));
+  const showFilters = tags.length > 0;
 
-  const chip = (href: string, label: string, active: boolean) => (
-    <Link
-      key={href}
-      href={href}
-      aria-current={active ? "page" : undefined}
-      className={`inline-flex min-h-11 items-center rounded-md border px-3 text-sm ${
-        active ? "border-accent bg-accent-soft text-accent" : "border-line bg-surface hover:bg-sunken"
-      }`}
-    >
-      {label}
-    </Link>
-  );
+  const filters = [
+    { href: "/me/comment-bank", label: "Tous", count: total, active: !tagFilter },
+    ...tags.map((t) => ({
+      href: `/me/comment-bank?tag=${encodeURIComponent(t.tag)}`,
+      label: t.tag,
+      count: t.count,
+      active: tagFilter === t.tag,
+    })),
+    ...(untagged > 0
+      ? [{ href: `/me/comment-bank?tag=${UNTAGGED}`, label: "Sans étiquette", count: untagged, active: tagFilter === UNTAGGED }]
+      : []),
+  ];
 
   return (
-    <div className="flex flex-col gap-8">
-      <header className="flex flex-col gap-2">
-        <p className="eyebrow">Évaluation</p>
-        <h1 className="text-2xl font-semibold text-balance">Banque de commentaires</h1>
-        <p className="max-w-prose text-muted">
-          Vos formulations récurrentes (points forts, pistes d&apos;amélioration, rappels de méthode), à insérer en un
-          clic dans vos retours et commentaires d&apos;auto-évaluation. Étiquetez-les avec un code d&apos;AC (ex.
-          AC14.02) : elles seront proposées en priorité sur les critères correspondants. Seul·e vous les voyez.
-        </p>
-      </header>
+    <div className="flex flex-col gap-10">
+      <PageHeader title="Banque de commentaires" />
 
-      <section aria-labelledby="new-snippet-title" className="card flex flex-col gap-3">
-        <h2 id="new-snippet-title" className="text-lg font-semibold">
-          Nouveau commentaire type
+      <section aria-labelledby="new-snippet-title" className="flex max-w-3xl flex-col gap-3">
+        <h2 id="new-snippet-title" className="text-xl">
+          Nouveau commentaire
         </h2>
         {total >= MAX_SNIPPETS ? (
-          <p className="text-sm text-warn">
-            Limite de {MAX_SNIPPETS} commentaires types atteinte : supprimez-en avant d&apos;en ajouter.
-          </p>
+          <p className="text-sm text-warn">Limite de {MAX_SNIPPETS} commentaires atteinte.</p>
         ) : (
           <SnippetForm action={createSnippet} submitLabel="Ajouter" resetOnSuccess tagListId="snippet-tags" />
         )}
@@ -89,70 +80,72 @@ export default async function CommentBankPage({ searchParams }: PageProps<"/me/c
       </section>
 
       <section aria-labelledby="snippets-title" className="flex flex-col gap-4">
-        <h2 id="snippets-title" className="text-lg font-semibold">
-          Mes commentaires types ({total})
+        <h2 id="snippets-title" className="text-xl">
+          Mes commentaires
         </h2>
 
-        {total > 0 && (tags.length > 0 || untagged > 0) && (
-          <nav aria-label="Filtrer par étiquette" className="flex flex-wrap gap-2">
-            {chip("/me/comment-bank", `Tous (${total})`, !tagFilter)}
-            {tags.map((t) =>
-              chip(`/me/comment-bank?tag=${encodeURIComponent(t.tag)}`, `${t.tag} (${t.count})`, tagFilter === t.tag),
-            )}
-            {untagged > 0 &&
-              tags.length > 0 &&
-              chip(`/me/comment-bank?tag=${UNTAGGED}`, `Sans étiquette (${untagged})`, tagFilter === UNTAGGED)}
+        {showFilters && (
+          <nav aria-label="Filtrer par étiquette">
+            <ul className="flex flex-wrap gap-x-5">
+              {filters.map((f) => (
+                <li key={f.href}>
+                  <Link
+                    href={f.href}
+                    aria-current={f.active ? "page" : undefined}
+                    className={`inline-flex min-h-11 items-center gap-1.5 text-sm ${
+                      f.active ? "font-semibold text-ink" : "text-accent underline hover:decoration-2"
+                    }`}
+                  >
+                    {f.label}
+                    <span className="text-muted">{f.count}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </nav>
         )}
 
         {total === 0 ? (
-          <p className="card text-muted">
-            Aucun commentaire type pour l&apos;instant. Ajoutez vos formulations les plus fréquentes ci-dessus : elles
-            apparaîtront dans « Insérer un commentaire type » lors de vos retours.
-          </p>
+          <EmptyState>Aucun commentaire.</EmptyState>
         ) : snippets.length === 0 ? (
-          <p className="card text-muted">
-            Aucun commentaire type pour ce filtre.{" "}
-            <Link href="/me/comment-bank" className="text-accent underline">
-              Afficher tout
-            </Link>
-          </p>
+          <EmptyState
+            action={
+              showFilters ? undefined : (
+                <Link href="/me/comment-bank" className="btn">
+                  Effacer
+                </Link>
+              )
+            }
+          >
+            Aucun commentaire pour ce filtre.
+          </EmptyState>
         ) : (
-          <ul className="flex flex-col gap-3">
+          <ul className="flex flex-col divide-y divide-line">
             {snippets.map((snippet) => (
-              <li key={snippet.id} className="card flex flex-col gap-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  {snippet.tag ? (
-                    <span className="badge font-mono text-ink">{snippet.tag}</span>
-                  ) : (
-                    <span className="badge">Sans étiquette</span>
-                  )}
-                  <span className="text-xs text-muted">ajouté le {formatDate(snippet.createdAt)}</span>
-                </div>
+              <li key={snippet.id} className="flex flex-col gap-2 py-4">
+                {snippet.tag && <p className="text-sm font-semibold">{snippet.tag}</p>}
                 <p className="max-w-prose break-words whitespace-pre-line">{snippet.body}</p>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
-                  <details className="w-full rounded-md border border-line sm:flex-1">
-                    <summary className="flex min-h-11 cursor-pointer items-center px-3 text-sm font-medium">
-                      Modifier
-                    </summary>
-                    <div className="border-t border-line p-3">
-                      <SnippetForm
-                        action={updateSnippet.bind(null, snippet.id)}
-                        initial={{ tag: snippet.tag, body: snippet.body }}
-                        submitLabel="Enregistrer"
-                        tagListId="snippet-tags"
-                      />
-                    </div>
-                  </details>
-                  <ConfirmActionButton
-                    action={deleteSnippet.bind(null, snippet.id)}
-                    label="Supprimer"
-                    pendingLabel="Suppression…"
-                    confirmMessage="Supprimer ce commentaire type ?"
-                    ariaLabel={`Supprimer le commentaire type ${snippet.tag ?? ""}`.trim()}
-                    variant="danger"
-                  />
-                </div>
+                <details>
+                  <summary className="btn btn-ghost cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                    Modifier<span className="sr-only"> ce commentaire</span>
+                  </summary>
+                  <div className="mt-3 flex max-w-3xl flex-col gap-4 border border-line p-4">
+                    <SnippetForm
+                      action={updateSnippet.bind(null, snippet.id)}
+                      initial={{ tag: snippet.tag, body: snippet.body }}
+                      submitLabel="Enregistrer"
+                      tagListId="snippet-tags"
+                    />
+                    <ConfirmActionButton
+                      action={deleteSnippet.bind(null, snippet.id)}
+                      label="Supprimer"
+                      pendingLabel="Suppression…"
+                      confirmMessage="Supprimer ce commentaire ?"
+                      ariaLabel={`Supprimer le commentaire ${snippet.tag ?? ""}`.trim()}
+                      variant="danger"
+                    />
+                  </div>
+                </details>
               </li>
             ))}
           </ul>

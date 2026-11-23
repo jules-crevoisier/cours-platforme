@@ -22,7 +22,7 @@ export function PageTree({ nodes, slug, currentId, depth = 0, basePath }: Props)
             <Link
               href={`${base}/${node.id}`}
               aria-current={current ? "page" : undefined}
-              className={`flex min-h-11 items-center rounded-md px-2 break-words hover:bg-sunken ${
+              className={`flex min-h-11 items-center px-2 break-words hover:bg-sunken ${
                 current ? "bg-accent-soft font-semibold text-accent" : ""
               }`}
             >

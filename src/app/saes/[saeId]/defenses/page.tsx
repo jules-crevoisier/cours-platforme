@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { assertAllowed, requireUser } from "@/lib/session";
 import { canBookDefense, canManageSae, canViewSae, isGroupMember } from "@/lib/permissions";
 import { formatDateTime, formatTime } from "@/lib/format";
+import { EmptyState, PageHeader, StatusBadge } from "@/components/ui";
 import { ActionForm, SubmitButton } from "../../_components/action-form";
 import { toInputDate } from "../../_lib/dates";
 import { isDefenseLocked } from "../../_lib/defense-slots";
+import { saeCrumb } from "../../_lib/labels";
+import { EditDisclosure } from "../manage/fields";
 import {
   assignDefenseSlot,
   bookDefenseSlot,
@@ -41,7 +43,6 @@ export default async function DefensesPage({ params }: PageProps<"/saes/[saeId]/
       id: true,
       code: true,
       title: true,
-      semester: true,
       published: true,
       ownerId: true,
       teachers: { select: { id: true } },
@@ -85,159 +86,135 @@ export default async function DefensesPage({ params }: PageProps<"/saes/[saeId]/
   }
 
   return (
-    <div className="space-y-8">
-      <header className="space-y-3">
-        <Link href={`/saes/${sae.id}`} className="inline-flex min-h-11 items-center text-sm text-muted hover:underline">
-          ← Retour à la SAÉ
-        </Link>
-        <p className="eyebrow font-mono">
-          {sae.code ?? "SAÉ"}
-          {sae.semester ? ` · S${sae.semester}` : ""} · Soutenances
-        </p>
-        <h1 className="text-2xl font-semibold text-balance break-words">Soutenances — {sae.title}</h1>
-        <p className="max-w-prose text-muted">
-          {canManage
-            ? "Générez les créneaux, puis laissez les groupes réserver ou attribuez-les vous-même. Les réservations se figent 24 h avant chaque créneau."
-            : "Chaque groupe réserve un seul créneau. Vous pouvez annuler ou changer jusqu'à 24 h avant le passage."}
-        </p>
-        {sae.defenseSlots.length > 0 && (
-          <p className="font-mono text-sm text-muted">
-            {taken}/{sae.defenseSlots.length} créneaux attribués
-          </p>
-        )}
-      </header>
-
-      {/* ── Mon groupe ─────────────────────────────────────── */}
-      {!canManage && (
-        <section aria-labelledby="mon-creneau" className="card space-y-2 border-accent">
-          <h2 id="mon-creneau" className="font-semibold">
-            {myGroup ? `Créneau de ${myGroup.name}` : "Votre créneau"}
-          </h2>
-          {!myGroup ? (
-            <p className="text-sm text-muted">
-              Vous n&apos;êtes dans aucun groupe de cette SAÉ : la réservation est faite par les membres d&apos;un groupe.
-            </p>
-          ) : mySlot ? (
-            <p>
-              <time dateTime={mySlot.startsAt.toISOString()} className="font-medium">
-                {formatDateTime(mySlot.startsAt)}
-              </time>
-              <span className="text-muted">
-                {" "}
-                · {mySlot.durationMin} min{mySlot.location ? ` · ${mySlot.location}` : ""}
+    <div className="flex flex-col gap-10">
+      <PageHeader
+        breadcrumbs={[
+          { label: "SAÉ", href: "/saes" },
+          { label: saeCrumb(sae), href: `/saes/${sae.id}` },
+          { label: "Soutenances" },
+        ]}
+        title="Soutenances"
+        meta={
+          canManage ? (
+            sae.defenseSlots.length > 0 && (
+              <span>
+                Créneaux attribués : {taken} sur {sae.defenseSlots.length}
               </span>
-            </p>
-          ) : sae.defenseSlots.length === 0 ? (
-            <p className="text-sm text-muted">L&apos;équipe pédagogique n&apos;a pas encore ouvert de créneaux.</p>
+            )
           ) : (
-            <p className="text-sm text-muted">Aucun créneau réservé. Choisissez un créneau libre ci-dessous.</p>
-          )}
-        </section>
-      )}
+            mySlot && (
+              <span>
+                Votre créneau : <time dateTime={mySlot.startsAt.toISOString()}>{formatDateTime(mySlot.startsAt)}</time>
+              </span>
+            )
+          )
+        }
+      />
 
-      {/* ── Génération (équipe) ────────────────────────────── */}
-      {canManage && (
-        <section aria-labelledby="generer" className="space-y-3">
-          <h2 id="generer" className="text-xl font-semibold">
-            Ajouter des créneaux
+      {/* ── Créneaux ───────────────────────────────────────── */}
+      <section aria-labelledby="creneaux" className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4">
+          <h2 id="creneaux" className="text-xl">
+            Créneaux
           </h2>
-          <ActionForm action={generateDefenseSlots} className="card space-y-4" aria-label="Générer des créneaux">
-            <input type="hidden" name="saeId" value={sae.id} />
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <div>
-                <label htmlFor="slot-date" className="label">
-                  Jour
-                </label>
-                <input id="slot-date" name="date" type="date" required className="input" />
-              </div>
-              <div>
-                <label htmlFor="slot-start" className="label">
-                  Premier créneau <span className="font-normal text-muted">(heure de Paris)</span>
-                </label>
-                <input id="slot-start" name="startTime" type="time" required defaultValue="09:00" className="input" />
-              </div>
-              <div>
-                <label htmlFor="slot-count" className="label">
-                  Nombre de créneaux
-                </label>
-                <input
-                  id="slot-count"
-                  name="count"
-                  type="number"
-                  inputMode="numeric"
-                  min={1}
-                  max={60}
-                  defaultValue={8}
-                  required
-                  className="input"
-                />
-              </div>
-              <div>
-                <label htmlFor="slot-duration" className="label">
-                  Durée (min)
-                </label>
-                <input
-                  id="slot-duration"
-                  name="durationMin"
-                  type="number"
-                  inputMode="numeric"
-                  min={5}
-                  max={240}
-                  defaultValue={20}
-                  required
-                  className="input"
-                />
-              </div>
-              <div>
-                <label htmlFor="slot-break" className="label">
-                  Pause entre créneaux (min)
-                </label>
-                <input
-                  id="slot-break"
-                  name="breakMin"
-                  type="number"
-                  inputMode="numeric"
-                  min={0}
-                  max={120}
-                  defaultValue={10}
-                  required
-                  className="input"
-                />
-              </div>
-              <div>
-                <label htmlFor="slot-location" className="label">
-                  Lieu <span className="font-normal text-muted">(optionnel)</span>
-                </label>
-                <input id="slot-location" name="location" maxLength={190} className="input" placeholder="Salle 204" />
-              </div>
-              <div className="sm:col-span-2 lg:col-span-3">
-                <label htmlFor="slot-jury" className="label">
-                  Jury <span className="font-normal text-muted">(optionnel)</span>
-                </label>
-                <input id="slot-jury" name="jury" maxLength={190} className="input" placeholder="C. Martin, J. Petit" />
-              </div>
-            </div>
-            <SubmitButton pendingLabel="Création…">Créer les créneaux</SubmitButton>
-          </ActionForm>
-        </section>
-      )}
 
-      {/* ── Liste des créneaux ─────────────────────────────── */}
-      <section aria-labelledby="creneaux" className="space-y-4">
-        <h2 id="creneaux" className="text-xl font-semibold">
-          Créneaux
-        </h2>
+          {canManage && (
+            <EditDisclosure summary="Générer des créneaux">
+              <ActionForm
+                action={generateDefenseSlots}
+                className="flex max-w-3xl flex-col gap-4"
+                aria-label="Générer des créneaux"
+              >
+                <input type="hidden" name="saeId" value={sae.id} />
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <div>
+                    <label htmlFor="slot-date" className="label">
+                      Jour
+                    </label>
+                    <input id="slot-date" name="date" type="date" required className="input" />
+                  </div>
+                  <div>
+                    <label htmlFor="slot-start" className="label">
+                      Premier créneau <span className="font-normal text-muted">(heure de Paris)</span>
+                    </label>
+                    <input id="slot-start" name="startTime" type="time" required defaultValue="09:00" className="input" />
+                  </div>
+                  <div>
+                    <label htmlFor="slot-count" className="label">
+                      Nombre de créneaux
+                    </label>
+                    <input
+                      id="slot-count"
+                      name="count"
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      max={60}
+                      defaultValue={8}
+                      required
+                      className="input"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="slot-duration" className="label">
+                      Durée (min)
+                    </label>
+                    <input
+                      id="slot-duration"
+                      name="durationMin"
+                      type="number"
+                      inputMode="numeric"
+                      min={5}
+                      max={240}
+                      defaultValue={20}
+                      required
+                      className="input"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="slot-break" className="label">
+                      Pause entre créneaux (min)
+                    </label>
+                    <input
+                      id="slot-break"
+                      name="breakMin"
+                      type="number"
+                      inputMode="numeric"
+                      min={0}
+                      max={120}
+                      defaultValue={10}
+                      required
+                      className="input"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="slot-location" className="label">
+                      Lieu <span className="font-normal text-muted">(optionnel)</span>
+                    </label>
+                    <input id="slot-location" name="location" maxLength={190} className="input" placeholder="Salle 204" />
+                  </div>
+                  <div className="sm:col-span-2 lg:col-span-3">
+                    <label htmlFor="slot-jury" className="label">
+                      Jury <span className="font-normal text-muted">(optionnel)</span>
+                    </label>
+                    <input id="slot-jury" name="jury" maxLength={190} className="input" placeholder="C. Martin, J. Petit" />
+                  </div>
+                </div>
+                <div>
+                  <SubmitButton pendingLabel="Création…">Créer les créneaux</SubmitButton>
+                </div>
+              </ActionForm>
+            </EditDisclosure>
+          )}
+        </div>
+
         {sae.defenseSlots.length === 0 ? (
-          <p className="card text-muted">
-            {canManage
-              ? "Aucun créneau. Générez une série ci-dessus : jour, heure du premier passage, durée et pause."
-              : "Aucun créneau pour l'instant."}
-          </p>
+          <EmptyState>Aucun créneau.</EmptyState>
         ) : (
           [...days.entries()].map(([day, slots]) => (
-            <div key={day} className="space-y-2">
-              <h3 className="font-medium first-letter:uppercase">{dayFormatter.format(slots[0].startsAt)}</h3>
-              <ul className="divide-y divide-line rounded-md border border-line bg-surface">
+            <div key={day} className="flex flex-col gap-2">
+              <h3 className="first-letter:uppercase">{dayFormatter.format(slots[0].startsAt)}</h3>
+              <ul className="divide-y divide-line">
                 {slots.map((slot) => {
                   const locked = isDefenseLocked(slot.startsAt, now);
                   const mine = !!myGroup && slot.groupId === myGroup.id;
@@ -245,29 +222,30 @@ export default async function DefensesPage({ params }: PageProps<"/saes/[saeId]/
                   return (
                     <li
                       key={slot.id}
-                      className={`flex flex-col gap-3 p-3 md:flex-row md:items-center md:justify-between ${
-                        mine ? "bg-accent-soft" : ""
+                      className={`flex flex-col gap-3 py-3 md:flex-row md:items-center md:justify-between ${
+                        mine ? "bg-accent-soft px-3" : ""
                       }`}
                     >
-                      <div className="min-w-0 space-y-1">
-                        <p className="flex flex-wrap items-center gap-2">
-                          <time dateTime={slot.startsAt.toISOString()} className="font-mono font-medium tabular-nums">
+                      <div className="flex min-w-0 flex-col gap-1">
+                        <p className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                          <time dateTime={slot.startsAt.toISOString()} className="font-semibold">
                             {time}
                           </time>
-                          {slot.group ? (
-                            <span className={`badge ${mine ? "badge-accent" : "badge-ok"}`}>
-                              {mine ? `Votre groupe · ${slot.group.name}` : slot.group.name}
+                          {slot.group && (
+                            <span className={mine ? "font-semibold" : "break-words"}>
+                              {mine ? "Votre groupe" : slot.group.name}
                             </span>
-                          ) : (
-                            <span className="badge">Libre</span>
                           )}
-                          {locked && <span className="badge badge-warn">Verrouillé</span>}
+                          {locked ? (
+                            <StatusBadge tone="warn">Verrouillé</StatusBadge>
+                          ) : (
+                            !slot.group && <StatusBadge tone="ok">Libre</StatusBadge>
+                          )}
                         </p>
                         {(slot.location || slot.jury) && (
-                          <p className="text-sm text-muted break-words">
-                            {slot.location}
-                            {slot.location && slot.jury ? " · " : ""}
-                            {slot.jury ? `Jury : ${slot.jury}` : ""}
+                          <p className="flex flex-wrap gap-x-4 text-sm break-words text-muted">
+                            {slot.location && <span>{slot.location}</span>}
+                            {slot.jury && <span>Jury : {slot.jury}</span>}
                           </p>
                         )}
                       </div>

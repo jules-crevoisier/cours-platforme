@@ -25,7 +25,7 @@ type Props = {
 
 const SEMESTERS = [1, 2, 3, 4, 5, 6] as const;
 
-/** Champs communs à la création et aux réglages d'une SAÉ */
+/** Champs communs à la création et à l'onglet « Infos » de la gestion d'une SAÉ */
 export function SaeFields({ idPrefix, courses, cohorts, defaults }: Props) {
   const f = (name: string) => `${idPrefix}-${name}`;
   return (
@@ -37,7 +37,7 @@ export function SaeFields({ idPrefix, courses, cohorts, defaults }: Props) {
         <input
           id={f("code")}
           name="code"
-          className="input font-mono"
+          className="input"
           maxLength={40}
           placeholder="SAÉ 2.01"
           defaultValue={defaults?.code ?? ""}
@@ -71,7 +71,7 @@ export function SaeFields({ idPrefix, courses, cohorts, defaults }: Props) {
       </div>
       <div className="md:col-span-2">
         <label htmlFor={f("competences")} className="label">
-          Compétences visées <span className="font-normal text-muted">(optionnel, texte libre)</span>
+          Compétences visées <span className="font-normal text-muted">(optionnel)</span>
         </label>
         <textarea
           id={f("competences")}
@@ -113,9 +113,6 @@ export function SaeFields({ idPrefix, courses, cohorts, defaults }: Props) {
             </option>
           ))}
         </select>
-        {courses.length === 0 && (
-          <p className="mt-1 text-sm text-muted">Aucun cours que vous pouvez modifier pour l&apos;instant.</p>
-        )}
       </div>
       {cohorts && (
         <div>
@@ -126,15 +123,10 @@ export function SaeFields({ idPrefix, courses, cohorts, defaults }: Props) {
             <option value="">Aucune promo</option>
             {cohorts.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name} · {c.academicYear}
+                {c.name} ({c.academicYear})
               </option>
             ))}
           </select>
-          <p className="mt-1 text-sm text-muted">
-            {cohorts.length === 0
-              ? "Aucune promo n'a encore été créée."
-              : "Permet de former les groupes automatiquement et de prévenir toute la promo."}
-          </p>
         </div>
       )}
     </div>

@@ -3,17 +3,20 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { assertAllowed, requireUser } from "@/lib/session";
-import { ROLE_LABELS, canManageSae, canViewAssessment, canViewPortfolio, canViewSae, isStaff } from "@/lib/permissions";
-import { formatDate } from "@/lib/format";
+import { canManageSae, canViewAssessment, canViewPortfolio, canViewSae, isStaff } from "@/lib/permissions";
+import { AssessmentStatusBadge, EmptyState, PageHeader, StatusBadge } from "@/components/ui";
 import { CompetenceRadar } from "@/components/competence-radar";
 import { loadPortfolio, loadStudentParcours } from "@/app/me/portfolio/_lib/profile";
 import { PortfolioSections } from "@/app/me/portfolio/_components/portfolio-sections";
 import { PrintButton } from "@/app/me/portfolio/_components/share-tools";
-import { AssessmentStatusBadge, BackLink } from "@/app/me/portfolio/_components/ui";
 
 export const metadata: Metadata = { title: "Fiche étudiant", robots: { index: false, follow: false } };
 
-const SHOWCASE_LABELS = { NONE: null, PENDING: "Vitrine : en attente", PUBLISHED: "Vitrine : publié" } as const;
+const SHOWCASE = {
+  NONE: null,
+  PENDING: { tone: "neutral", label: "Vitrine : en attente" },
+  PUBLISHED: { tone: "ok", label: "Vitrine : publié" },
+} as const;
 
 export default async function StudentPage({ params }: PageProps<"/students/[userId]">) {
   const { userId } = await params;
@@ -23,7 +26,7 @@ export default async function StudentPage({ params }: PageProps<"/students/[user
 
   const student = await db.user.findUnique({
     where: { id: userId },
-    select: { id: true, name: true, email: true, role: true },
+    select: { id: true, name: true, email: true },
   });
   if (!student) notFound();
 
@@ -41,7 +44,7 @@ export default async function StudentPage({ params }: PageProps<"/students/[user
             id: true,
             name: true,
             showcaseStatus: true,
-            sae: { select: { id: true, code: true, title: true, semester: true, ...saeAccess } },
+            sae: { select: { id: true, code: true, title: true, ...saeAccess } },
           },
         },
       },
@@ -53,8 +56,6 @@ export default async function StudentPage({ params }: PageProps<"/students/[user
       select: {
         id: true,
         status: true,
-        submittedAt: true,
-        updatedAt: true,
         feedbackPublishedAt: true,
         milestone: {
           select: { title: true, sae: { select: { id: true, code: true, title: true, ...saeAccess } } },
@@ -66,127 +67,124 @@ export default async function StudentPage({ params }: PageProps<"/students/[user
   const isSelf = user.id === student.id;
   const title = isSelf ? "Ma fiche" : student.name;
 
+  // Une seule présentation du travail en SAÉ : chaque SAÉ avec le groupe de l'étudiant et ses auto-évaluations
+  type SaeRef = (typeof memberships)[number]["group"]["sae"];
+  const saes = new Map<
+    string,
+    { sae: SaeRef; groups: (typeof memberships)[number]["group"][]; assessments: typeof assessments }
+  >();
+  for (const { group } of memberships) {
+    const row = saes.get(group.sae.id) ?? { sae: group.sae, groups: [], assessments: [] };
+    row.groups.push(group);
+    saes.set(group.sae.id, row);
+  }
+  for (const a of assessments) {
+    const row = saes.get(a.milestone.sae.id) ?? { sae: a.milestone.sae, groups: [], assessments: [] };
+    row.assessments.push(a);
+    saes.set(a.milestone.sae.id, row);
+  }
+
   return (
     <div className="flex flex-col gap-10">
-      <header className="flex flex-col gap-3">
-        {isStaff(user) && <BackLink href="/students">Étudiants</BackLink>}
-        <p className="eyebrow font-mono">{ROLE_LABELS[student.role]} · fiche de suivi</p>
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <h1 className="text-2xl font-semibold text-balance break-words">{title}</h1>
-          <PrintButton />
-        </div>
-        <p className="text-sm break-all text-muted">{student.email}</p>
-        {info.cohorts.length > 0 && (
-          <ul className="flex flex-wrap gap-2" aria-label="Promos">
+      <PageHeader
+        breadcrumbs={isStaff(user) ? [{ label: "Étudiants", href: "/students" }, { label: student.name }] : undefined}
+        title={title}
+        meta={
+          <>
+            <span className="break-all">{student.email}</span>
             {info.cohorts.map((c) => (
-              <li key={c.id} className="badge text-ink">
-                {c.name} · {c.academicYear}
-                {c.parcours ? ` · ${c.parcours}` : ""}
+              <span key={c.id}>
+                {c.name} {c.academicYear}
+                {c.parcours ? ` (${c.parcours})` : ""}
+              </span>
+            ))}
+          </>
+        }
+        actions={<PrintButton />}
+      />
+
+      <section aria-labelledby="st-radar" className="flex flex-col gap-4">
+        <h2 id="st-radar" className="text-xl">
+          Compétences
+        </h2>
+        <CompetenceRadar
+          id="student-radar"
+          scores={portfolio.scores}
+          title={`Profil de compétences de ${student.name}`}
+          className="max-w-xl"
+        />
+      </section>
+
+      <section aria-labelledby="st-saes" className="flex flex-col gap-3">
+        <h2 id="st-saes" className="text-xl">
+          SAÉ
+        </h2>
+        {saes.size === 0 ? (
+          <EmptyState>Aucune SAÉ.</EmptyState>
+        ) : (
+          <ul className="flex flex-col divide-y divide-line border-y border-line">
+            {[...saes.values()].map(({ sae, groups, assessments: list }) => (
+              <li key={sae.id} className="flex flex-col gap-2 py-4">
+                <h3 className="text-base break-words">{sae.code ? `${sae.code} ${sae.title}` : sae.title}</h3>
+                {groups.map((group) => {
+                  const canOpen = canManageSae(user, group.sae) || (isSelf && canViewSae(user, group.sae));
+                  const showcase = SHOWCASE[group.showcaseStatus];
+                  return (
+                    <p key={group.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                      {canOpen ? (
+                        <Link
+                          href={`/saes/${group.sae.id}/groups/${group.id}`}
+                          className="inline-flex min-h-11 items-center text-accent underline"
+                        >
+                          <span className="sr-only">Espace du groupe </span>
+                          {group.name}
+                        </Link>
+                      ) : (
+                        <span>{group.name}</span>
+                      )}
+                      {showcase && <StatusBadge tone={showcase.tone}>{showcase.label}</StatusBadge>}
+                    </p>
+                  );
+                })}
+                {list.length > 0 && (
+                  <ul aria-label={`Auto-évaluations : ${sae.code ?? sae.title}`} className="flex flex-col">
+                    {list.map((a) => {
+                      const allowed = canViewAssessment(
+                        user,
+                        { userId: student.id, status: a.status, group: null },
+                        a.milestone.sae,
+                      );
+                      return (
+                        <li key={a.id} className="flex min-h-11 flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                          {allowed ? (
+                            <Link href={`/assessments/${a.id}`} className="break-words text-accent underline">
+                              {a.milestone.title}
+                            </Link>
+                          ) : (
+                            <span className="break-words">{a.milestone.title}</span>
+                          )}
+                          <AssessmentStatusBadge status={a.status} />
+                          {a.feedbackPublishedAt && <span className="text-muted">Retour publié</span>}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </li>
             ))}
-          </ul>
-        )}
-      </header>
-
-      <section aria-labelledby="st-radar" className="flex flex-col gap-3">
-        <h2 id="st-radar" className="text-lg font-semibold">
-          Profil de compétences
-        </h2>
-        <div className="card">
-          <CompetenceRadar id="student-radar" scores={portfolio.scores} title={`Profil de compétences de ${student.name}`} />
-        </div>
-        <p className="text-sm text-muted">Seuls les positionnements enseignants publiés sont pris en compte.</p>
-      </section>
-
-      <section aria-labelledby="st-groups" className="flex flex-col gap-3">
-        <h2 id="st-groups" className="text-lg font-semibold">
-          SAÉ et groupes ({memberships.length})
-        </h2>
-        {memberships.length === 0 ? (
-          <p className="text-muted">Aucun groupe de SAÉ.</p>
-        ) : (
-          <ul className="flex flex-col divide-y divide-line rounded-md border border-line bg-surface">
-            {memberships.map(({ group }) => {
-              const canOpen = canManageSae(user, group.sae) || (isSelf && canViewSae(user, group.sae));
-              const showcase = SHOWCASE_LABELS[group.showcaseStatus];
-              return (
-                <li key={group.id} className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
-                  <span className="font-mono text-xs text-muted">
-                    {group.sae.code ?? "SAÉ"}
-                    {group.sae.semester ? ` · S${group.sae.semester}` : ""}
-                  </span>
-                  <span className="min-w-0 break-words sm:flex-1">
-                    {group.sae.title} — <span className="font-medium">{group.name}</span>
-                  </span>
-                  {showcase && <span className="badge badge-accent self-start">{showcase}</span>}
-                  {canOpen && (
-                    <Link
-                      href={`/saes/${group.sae.id}/groups/${group.id}`}
-                      className="inline-flex min-h-11 items-center self-start text-sm text-accent underline sm:self-auto"
-                    >
-                      Espace du groupe<span className="sr-only"> {group.name}</span>
-                    </Link>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
-
-      <section aria-labelledby="st-assessments" className="flex flex-col gap-3">
-        <h2 id="st-assessments" className="text-lg font-semibold">
-          Auto-évaluations ({assessments.length}
-          {assessments.length === 100 ? "+" : ""})
-        </h2>
-        {assessments.length === 0 ? (
-          <p className="text-muted">Aucune auto-évaluation.</p>
-        ) : (
-          <ul className="flex flex-col divide-y divide-line rounded-md border border-line bg-surface">
-            {assessments.map((a) => {
-              const allowed = canViewAssessment(
-                user,
-                { userId: student.id, status: a.status, group: null },
-                a.milestone.sae,
-              );
-              return (
-                <li key={a.id} className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
-                  <span className="font-mono text-xs text-muted">{a.milestone.sae.code ?? "SAÉ"}</span>
-                  <span className="min-w-0 break-words sm:flex-1">
-                    {a.milestone.title}
-                    <span className="text-muted"> · {a.milestone.sae.title}</span>
-                  </span>
-                  <span className="flex flex-wrap items-center gap-2">
-                    <AssessmentStatusBadge status={a.status} />
-                    {a.feedbackPublishedAt && <span className="badge badge-ok">Retour publié</span>}
-                    <span className="text-xs text-muted">
-                      {a.submittedAt ? `soumise le ${formatDate(a.submittedAt)}` : `modifiée le ${formatDate(a.updatedAt)}`}
-                    </span>
-                  </span>
-                  {allowed && (
-                    <Link
-                      href={`/assessments/${a.id}`}
-                      className="inline-flex min-h-11 items-center self-start text-sm text-accent underline sm:self-auto"
-                    >
-                      Ouvrir<span className="sr-only"> l&apos;auto-évaluation {a.milestone.title}</span>
-                    </Link>
-                  )}
-                </li>
-              );
-            })}
           </ul>
         )}
       </section>
 
       <section aria-labelledby="st-portfolio" className="flex flex-col gap-4">
-        <h2 id="st-portfolio" className="text-lg font-semibold">
+        <h2 id="st-portfolio" className="text-xl">
           Portfolio
         </h2>
         <PortfolioSections
           portfolio={portfolio}
           mode="staff"
-          canOpenAssessment={(t) => isSelf || canManageSae(user, t.saeAccess)}
-          emptyMessage="Aucune trace ni auto-évaluation rattachée à un apprentissage critique."
+          saeTraces={false}
+          emptyMessage="Aucune trace personnelle."
         />
       </section>
     </div>

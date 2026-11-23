@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { EmptyState, PageHeader, StatusBadge } from "@/components/ui";
 import { db } from "@/lib/db";
 import { assertAllowed, requireUser } from "@/lib/session";
 import { isAdmin, isStaff } from "@/lib/permissions";
@@ -52,33 +53,29 @@ export default async function CouverturePage() {
   const percent = coverage.total ? Math.round((coverage.covered / coverage.total) * 100) : 0;
 
   return (
-    <div className="space-y-8">
-      <header className="space-y-2">
-        <p className="eyebrow">Administration</p>
-        <h1 className="text-2xl font-semibold text-balance">Couverture du référentiel par les SAÉ</h1>
-        <p className="max-w-prose text-muted">
-          Pour chaque apprentissage critique (AC), les SAÉ dont au moins un critère de jalon le vise. Un AC sans aucune
-          SAÉ n&apos;est évalué nulle part : à planifier ou à rattacher.
-        </p>
-        <p className="font-mono text-sm text-muted">
-          {coverage.covered} / {coverage.total} AC couverts ({percent} %) · {coverage.columns.length} SAÉ rattachées
-        </p>
-        <p>
-          <Link href="/admin/referentiel" className="underline">
-            ← Référentiel
-          </Link>
-        </p>
-      </header>
+    <div className="flex flex-col gap-10">
+      <PageHeader
+        breadcrumbs={[{ label: "Référentiel", href: "/admin/referentiel" }, { label: "Couverture" }]}
+        title="Couverture du référentiel par les SAÉ"
+        meta={
+          <>
+            <span>
+              {coverage.covered} / {coverage.total} AC couverts ({percent} %)
+            </span>
+            <span>{coverage.columns.length} SAÉ rattachées</span>
+          </>
+        }
+      />
 
       {coverage.total === 0 ? (
-        <p className="card text-muted">
+        <EmptyState>
           Le référentiel n&apos;est pas chargé en base. Lancez <span className="font-mono">npm run db:seed</span>.
-        </p>
+        </EmptyState>
       ) : coverage.columns.length === 0 ? (
-        <p className="card text-muted">
+        <EmptyState>
           Aucune SAÉ ne vise encore d&apos;AC : reliez les critères de vos jalons à un apprentissage critique depuis la
           gestion de chaque SAÉ.
-        </p>
+        </EmptyState>
       ) : (
         competences.map((c) => (
           <section key={c.code} className="space-y-3">
@@ -113,11 +110,15 @@ export default async function CouverturePage() {
                     const set = byLearning.get(l.id) ?? new Set<string>();
                     const empty = set.size === 0;
                     return (
-                      <tr key={l.id} className={empty ? "bg-warn-soft" : undefined}>
+                      <tr key={l.id}>
                         <th scope="row" className="sticky left-0 max-w-sm bg-surface p-3 text-left font-normal">
-                          <span className="badge mr-2 font-mono">{l.code}</span>
+                          <span className="mr-2 font-mono text-sm text-muted">{l.code}</span>
                           <span className="break-words">{l.label}</span>
-                          {empty && <span className="badge badge-warn ml-2">Non couvert</span>}
+                          {empty && (
+                            <span className="mt-1 block">
+                              <StatusBadge tone="warn">Non couvert</StatusBadge>
+                            </span>
+                          )}
                         </th>
                         {coverage.columns.map((s) => (
                           <td key={s.id} className="p-3 text-center">

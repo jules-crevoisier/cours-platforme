@@ -33,15 +33,15 @@ export function CourseSettingsForm({ action, course }: Props) {
         />
       </div>
       <label className="flex min-h-11 items-center gap-3">
-        <input type="checkbox" name="published" defaultChecked={course.published} className="size-5" />
+        <input type="checkbox" name="published" defaultChecked={course.published} className="size-5 shrink-0" />
         <span>Publié (visible par les étudiants)</span>
       </label>
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" className="btn btn-primary" disabled={pending}>
-          {pending ? "Enregistrement…" : "Enregistrer les réglages"}
+          {pending ? "Enregistrement…" : "Enregistrer"}
         </button>
         <p role="status" aria-live="polite" className={state && !state.ok ? "form-error" : "text-sm text-ok"}>
-          {state ? (state.ok ? "Réglages enregistrés." : state.error) : ""}
+          {state ? (state.ok ? "Paramètres enregistrés." : state.error) : ""}
         </p>
       </div>
     </form>

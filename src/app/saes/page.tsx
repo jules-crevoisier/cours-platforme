@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { canCreateSae, canManageSae, isAdmin } from "@/lib/permissions";
 import { SAE_GAP_LABELS, saeGaps } from "@/lib/coverage";
-import { formatDateRange } from "./_lib/dates";
+import { EmptyState, PageHeader, StatusBadge, Swatch } from "@/components/ui";
 
 export const metadata: Metadata = { title: "SAÉ" };
 
@@ -33,12 +33,7 @@ export default async function SaesPage({ searchParams }: PageProps<"/saes">) {
       published: true,
       ownerId: true,
       teachers: { select: { id: true } },
-      cohort: { select: { name: true } },
       _count: { select: { milestones: true } },
-      groups: {
-        where: { members: { some: { userId: user.id } } },
-        select: { name: true },
-      },
     },
   });
 
@@ -68,18 +63,17 @@ export default async function SaesPage({ searchParams }: PageProps<"/saes">) {
   const saes = onlyIncomplete ? all.filter((r) => r.gaps.length > 0) : all;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="eyebrow">Situations d&apos;apprentissage et d&apos;évaluation</p>
-          <h1 className="text-2xl font-semibold">SAÉ</h1>
-        </div>
-        {canCreateSae(user) && (
-          <Link href="/saes/new" className="btn btn-primary">
-            Nouvelle SAÉ
-          </Link>
-        )}
-      </div>
+    <div className="flex flex-col gap-10">
+      <PageHeader
+        title="SAÉ"
+        actions={
+          canCreateSae(user) && (
+            <Link href="/saes/new" className="btn btn-primary">
+              Nouvelle SAÉ
+            </Link>
+          )
+        }
+      />
 
       {managedIds.length > 0 && (
         <nav aria-label="Filtrer les SAÉ" className="flex flex-wrap gap-2">
@@ -101,56 +95,36 @@ export default async function SaesPage({ searchParams }: PageProps<"/saes">) {
       )}
 
       {saes.length === 0 ? (
-        <div className="card text-muted">
-          {onlyIncomplete ? (
-            <p>Aucune SAÉ à compléter : toutes ont des jalons, des dates et des AC visés.</p>
-          ) : (
-            <>
-              <p>Aucune SAÉ pour l&apos;instant. Elles apparaissent ici dès que l&apos;équipe pédagogique les publie.</p>
-              {canCreateSae(user) && (
-                <p className="mt-1">
-                  <Link href="/saes/new" className="underline">
-                    Créer la première SAÉ
-                  </Link>
-                </p>
-              )}
-            </>
-          )}
-        </div>
+        <EmptyState>
+          {onlyIncomplete ? "Aucune SAÉ à compléter : toutes ont des jalons, des dates et des AC visés." : "Aucune SAÉ."}
+        </EmptyState>
       ) : (
-        <ul className="grid gap-3 md:grid-cols-2">
-          {saes.map(({ sae, gaps }) => {
-            const range = formatDateRange(sae.startsAt, sae.endsAt);
-            const myGroup = sae.groups[0];
-            return (
-              <li key={sae.id}>
-                <Link
-                  href={`/saes/${sae.id}`}
-                  className="card block h-full min-h-11 transition-colors hover:border-accent"
-                >
-                  <div className="flex flex-wrap items-center gap-2">
-                    {sae.code && <span className="font-mono text-sm font-semibold text-accent">{sae.code}</span>}
-                    {sae.semester && <span className="badge font-mono">S{sae.semester}</span>}
-                    {sae.cohort && <span className="badge">{sae.cohort.name}</span>}
-                    {!sae.published && <span className="badge badge-warn">Brouillon</span>}
-                    {canManageSae(user, sae) && <span className="badge badge-accent">Gérée</span>}
-                  </div>
-                  <h2 className="mt-2 font-semibold break-words">{sae.title}</h2>
-                  {range && <p className="mt-1 text-sm text-muted">{range}</p>}
-                  {myGroup && <p className="mt-1 text-sm">Mon groupe : {myGroup.name}</p>}
-                  {gaps.length > 0 && (
-                    <p className="mt-2 flex flex-wrap gap-2">
+        <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {saes.map(({ sae, gaps }) => (
+            <li key={sae.id}>
+              <Link
+                href={`/saes/${sae.id}`}
+                className="card flex h-full min-h-11 items-start gap-4 transition-colors hover:border-ink"
+              >
+                <Swatch seed={sae.id} text={sae.code ?? sae.title} />
+                <div className="flex min-w-0 flex-col gap-1">
+                  {sae.code && <span className="text-sm text-muted">{sae.code}</span>}
+                  <h2 className="text-lg break-words">{sae.title}</h2>
+                  {(sae.semester || !sae.published || gaps.length > 0) && (
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">
+                      {sae.semester && <span>Semestre {sae.semester}</span>}
+                      {!sae.published && <StatusBadge tone="warn">Brouillon</StatusBadge>}
                       {gaps.map((g) => (
-                        <span key={g} className="badge badge-warn">
+                        <StatusBadge key={g} tone="warn">
                           {SAE_GAP_LABELS[g]}
-                        </span>
+                        </StatusBadge>
                       ))}
-                    </p>
+                    </div>
                   )}
-                </Link>
-              </li>
-            );
-          })}
+                </div>
+              </Link>
+            </li>
+          ))}
         </ul>
       )}
     </div>

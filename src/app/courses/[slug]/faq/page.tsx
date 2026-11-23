@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { assertAllowed, requireUser } from "@/lib/session";
 import { canModerateQuestion, canSeeAnonymousAuthor, canViewCourse } from "@/lib/permissions";
 import { formatDate } from "@/lib/format";
+import { EmptyState, PageHeader } from "@/components/ui";
 import { ActionButton } from "../../_components/action-button";
 import { Chevron } from "../../_components/chevron";
 import { setQuestionInFaq } from "../pages/[pageId]/actions";
@@ -49,49 +50,43 @@ export default async function CourseFaqPage({ params }: PageProps<"/courses/[slu
     },
   });
 
+  /** Même libellé d'auteur que sous les pages (questions-section) */
+  function answerAuthor(q: (typeof questions)[number], a: (typeof questions)[number]["answers"][number]) {
+    if (q.anonymous && a.authorId === q.authorId && !seeAnonymous && a.authorId !== user.id) return "Auteur de la question";
+    return team.has(a.authorId) ? `${a.author.name} (équipe du cours)` : a.author.name;
+  }
+
   return (
-    <div className="flex max-w-[70ch] flex-col gap-6">
-      <header className="flex flex-col gap-2">
-        <Link href={`/courses/${course.slug}`} className="inline-flex min-h-11 items-center self-start text-sm underline">
-          ← {course.title}
-        </Link>
-        <p className="eyebrow">Questions fréquentes</p>
-        <h1 className="text-2xl font-semibold text-balance break-words">FAQ — {course.title}</h1>
-        <p className="text-muted">
-          Les questions posées sous les pages du cours et retenues par l&apos;équipe pédagogique, avec leurs réponses.
-        </p>
-      </header>
+    <div className="flex max-w-[70ch] flex-col gap-10">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Cours", href: "/courses" },
+          { label: course.title, href: `/courses/${course.slug}` },
+          { label: "FAQ" },
+        ]}
+        title="Questions fréquentes"
+      />
 
       {questions.length === 0 ? (
-        <p className="card text-muted">
-          Aucune question n&apos;a encore été ajoutée à la FAQ.
-          {moderate
-            ? " Utilisez « Ajouter à la FAQ » sous une question posée sur une page du cours."
-            : " Posez vos questions en bas des pages du cours."}
-        </p>
+        <EmptyState>Aucune question.</EmptyState>
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul className="flex flex-col divide-y divide-line border-y border-line">
           {questions.map((q) => (
-            <li key={q.id} className="card">
+            <li key={q.id}>
               <details className="group">
-                <summary className="flex min-h-11 cursor-pointer items-center gap-2 font-semibold list-none [&::-webkit-details-marker]:hidden">
+                <summary className="flex min-h-11 cursor-pointer items-center gap-3 py-3 font-semibold list-none [&::-webkit-details-marker]:hidden">
                   <Chevron />
                   <span className="min-w-0 whitespace-pre-line break-words">{q.body}</span>
                 </summary>
-                <div className="flex flex-col gap-3 pt-3">
+                <div className="flex flex-col gap-4 pb-5 pl-7">
                   {q.answers.length === 0 ? (
                     <p className="text-muted">Pas encore de réponse.</p>
                   ) : (
-                    <ol aria-label="Réponses" className="flex flex-col gap-3 border-l-2 border-line pl-3">
+                    <ol aria-label="Réponses" className="flex flex-col gap-4 border-l-2 border-line pl-4">
                       {q.answers.map((a) => (
                         <li key={a.id} className="flex flex-col gap-1">
+                          <span className="text-sm font-medium">{answerAuthor(q, a)}</span>
                           <p className="whitespace-pre-line break-words">{a.body}</p>
-                          <p className="text-sm text-muted">
-                            {q.anonymous && a.authorId === q.authorId && !seeAnonymous && a.authorId !== user.id
-                              ? "Auteur de la question"
-                              : a.author.name}
-                            {team.has(a.authorId) ? " · équipe du cours" : ""}
-                          </p>
                         </li>
                       ))}
                     </ol>

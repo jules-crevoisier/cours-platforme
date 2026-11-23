@@ -34,7 +34,8 @@ function parisDay(d: Date) {
 export type DeadlineTone = "overdue" | "soon" | "later" | "done";
 
 /**
- * Échéance relative : "En retard", "Aujourd'hui", "J-3"…
+ * Échéance en une seule information : "En retard", "Aujourd'hui", "Demain", "Dans 3 jours",
+ * puis la date courte ("16 oct.") au-delà d'une semaine.
  * soon = moins de 72 h (à mettre en avant), overdue = dépassée.
  */
 export function deadline(due: Date, now = new Date(), done = false): { label: string; tone: DeadlineTone } {
@@ -45,7 +46,8 @@ export function deadline(due: Date, now = new Date(), done = false): { label: st
   const tone: DeadlineTone = ms <= 72 * 3600 * 1000 ? "soon" : "later";
   if (days === 0) return { label: "Aujourd'hui", tone };
   if (days === 1) return { label: "Demain", tone };
-  return { label: `J-${days}`, tone };
+  if (days < 7) return { label: `Dans ${days} jours`, tone };
+  return { label: due.toLocaleDateString("fr-FR", { timeZone: TZ, day: "numeric", month: "short" }), tone };
 }
 
 /** « il y a 3 min », « il y a 2 j » */

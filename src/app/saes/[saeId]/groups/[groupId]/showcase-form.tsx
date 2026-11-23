@@ -36,13 +36,14 @@ export function ShowcaseForm({ action, initial, isUpdate, isPublished }: Props) 
   }
 
   return (
-    <form onSubmit={handleSubmit} className="card flex flex-col gap-4" aria-describedby="showcase-help">
-      <h3 className="text-base font-semibold">{isUpdate ? "Modifier la proposition" : "Proposer le projet à la vitrine"}</h3>
-      <p id="showcase-help" className="text-sm text-muted">
-        La vitrine publique présente les projets du département (comme les catégories du Festival MMI). L&apos;équipe
-        pédagogique valide chaque proposition avant publication.
-        {isPublished && " Toute modification retire le projet de la vitrine jusqu'à la nouvelle validation."}
-      </p>
+    <form
+      onSubmit={handleSubmit}
+      aria-label={isUpdate ? "Modifier la proposition" : "Proposer le projet à la vitrine"}
+      className="flex flex-col gap-4"
+    >
+      {isPublished && (
+        <p className="text-sm text-warn">Toute modification retire le projet de la vitrine jusqu&apos;à validation.</p>
+      )}
 
       <div>
         <label htmlFor="showcase-title" className="label">
@@ -76,14 +77,15 @@ export function ShowcaseForm({ action, initial, isUpdate, isPublished }: Props) 
           aria-describedby="showcase-summary-count"
           className="input py-2"
         />
-        <p id="showcase-summary-count" className="mt-1 font-mono text-xs text-muted tabular-nums">
-          {summaryLength} / {SHOWCASE_SUMMARY_MAX} caractères — le pitch : intention, public, choix marquants.
+        <p id="showcase-summary-count" className="mt-1 text-xs text-muted">
+          {summaryLength} / {SHOWCASE_SUMMARY_MAX} caractères
         </p>
       </div>
 
       <div>
         <label htmlFor="showcase-url" className="label">
-          Lien vers le projet <span className="text-danger">*</span>
+          Lien vers le projet <span className="text-danger">*</span>{" "}
+          <span className="font-normal text-muted">(accessible sans connexion)</span>
         </label>
         <input
           id="showcase-url"
@@ -96,12 +98,8 @@ export function ShowcaseForm({ action, initial, isUpdate, isPublished }: Props) 
           spellCheck={false}
           defaultValue={initial.url}
           placeholder="https://"
-          aria-describedby="showcase-url-help"
           className="input"
         />
-        <p id="showcase-url-help" className="mt-1 text-xs text-muted">
-          Site en ligne, vidéo, prototype Figma, Behance… accessible sans connexion.
-        </p>
       </div>
 
       <div>
@@ -118,13 +116,8 @@ export function ShowcaseForm({ action, initial, isUpdate, isPublished }: Props) 
           spellCheck={false}
           defaultValue={initial.imageUrl}
           placeholder="https://"
-          aria-describedby="showcase-image-help"
           className="input"
         />
-        <p id="showcase-image-help" className="mt-1 text-xs text-muted">
-          Lien direct vers une image hébergée ailleurs (format paysage 16:9 conseillé). Aucun fichier n&apos;est
-          stocké ici.
-        </p>
       </div>
 
       <div>
@@ -149,7 +142,7 @@ export function ShowcaseForm({ action, initial, isUpdate, isPublished }: Props) 
         </select>
       </div>
 
-      <div className="flex min-h-11 items-start gap-3 rounded-md border border-line bg-sunken p-3">
+      <div className="flex min-h-11 items-start gap-3 border border-line bg-sunken p-3">
         <input
           id="showcase-consent"
           name="consent"

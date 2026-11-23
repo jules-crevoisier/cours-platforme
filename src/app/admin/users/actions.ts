@@ -65,5 +65,5 @@ export async function addUsersToCohort(_prev: FormResult, formData: FormData): P
   const already = users.length - count;
   const parts = [`${count} ajouté${count > 1 ? "s" : ""} à « ${cohort.name} »`];
   if (already > 0) parts.push(`${already} déjà membre${already > 1 ? "s" : ""}`);
-  return { ok: true, message: `${parts.join(" · ")}.` };
+  return { ok: true, message: `${parts.join(", ")}.` };
 }

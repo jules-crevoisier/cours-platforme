@@ -1,6 +1,7 @@
-// Radar de compétences (SVG, rendu serveur, sans état).
-// Auto-positionnement = polygone au trait plein ; positionnement enseignant publié = zone pleine légère à bord pointillé.
-// Aucune information portée par la seule couleur : légende texte + tableau de données pour les lecteurs d'écran.
+// Radar de compétences (SVG, rendu serveur, sans état). Tout est carré : points et repères en carrés.
+// Auto-positionnement = polygone au trait plein ; positionnement enseignant publié = zone légère à bord pointillé.
+// Une seule légende visible (compétences, et les deux tracés quand l'enseignant est affiché) ;
+// les valeurs sont dans un tableau réservé aux lecteurs d'écran.
 import { radarPoints, type CompetenceScore } from "@/lib/competences";
 
 const MAX = 4;
@@ -130,7 +131,7 @@ export function CompetenceRadar({
               key={`tick-${i}`}
               x={ring[0].x + 4}
               y={ring[0].y + 3}
-              className="fill-muted font-mono"
+              className="fill-muted"
               fontSize={9}
             >
               {i + 1}
@@ -143,7 +144,7 @@ export function CompetenceRadar({
               className="fill-ink/10 stroke-muted"
               strokeWidth={1.5}
               strokeDasharray="4 3"
-              strokeLinejoin="round"
+              strokeLinejoin="miter"
             />
           )}
           {hasSelf && (
@@ -152,15 +153,16 @@ export function CompetenceRadar({
                 points={toPath(selfPoints)}
                 className="fill-none stroke-accent"
                 strokeWidth={2.5}
-                strokeLinejoin="round"
+                strokeLinejoin="miter"
               />
               {selfPoints.map((p, i) =>
                 scores[i].self != null ? (
-                  <circle
+                  <rect
                     key={`self-${i}`}
-                    cx={p.x}
-                    cy={p.y}
-                    r={3.5}
+                    x={p.x - 3.5}
+                    y={p.y - 3.5}
+                    width={7}
+                    height={7}
                     className="fill-accent stroke-surface"
                     strokeWidth={1}
                   />
@@ -169,7 +171,7 @@ export function CompetenceRadar({
             </>
           )}
 
-          {/* Étiquettes des axes : code de compétence + pastille de couleur */}
+          {/* Étiquettes des axes : code de compétence + carré de couleur */}
           {labelPoints.map((p, i) => {
             const anchor =
               Math.abs(p.x - CENTER) < 8
@@ -189,10 +191,11 @@ export function CompetenceRadar({
             const dotY = p.y + dy - 4;
             return (
               <g key={`label-${i}`}>
-                <circle
-                  cx={dotX}
-                  cy={dotY}
-                  r={4}
+                <rect
+                  x={dotX - 3.5}
+                  y={dotY - 3.5}
+                  width={7}
+                  height={7}
                   fill={color ?? "currentColor"}
                   className={color ? "" : "text-muted"}
                 />
@@ -200,7 +203,7 @@ export function CompetenceRadar({
                   x={p.x}
                   y={p.y + dy}
                   textAnchor={anchor}
-                  className="fill-ink font-mono font-semibold"
+                  className="fill-ink font-semibold"
                   fontSize={12}
                 >
                   {scores[i].code}
@@ -211,72 +214,64 @@ export function CompetenceRadar({
         </svg>
       )}
 
-      <figcaption className="flex flex-col gap-3 text-sm">
+      {/* Légende visible, masquée aux lecteurs d'écran qui disposent de la description et du tableau */}
+      <figcaption className="flex flex-col gap-2 text-sm">
         <ul
-          className="flex flex-wrap gap-x-4 gap-y-1 text-muted"
+          className="flex flex-wrap gap-x-5 gap-y-1 text-muted"
           aria-hidden="true"
         >
-          <li className="inline-flex items-center gap-2">
-            <svg
-              width="24"
-              height="10"
-              viewBox="0 0 24 10"
-              className="shrink-0"
-            >
-              <line
-                x1="0"
-                y1="5"
-                x2="24"
-                y2="5"
-                className="stroke-accent"
-                strokeWidth={2.5}
-              />
-              <circle cx="12" cy="5" r="3" className="fill-accent" />
-            </svg>
-            Auto-positionnement
-          </li>
-          {showTeacher && (
-            <li className="inline-flex items-center gap-2">
-              <svg
-                width="24"
-                height="12"
-                viewBox="0 0 24 12"
-                className="shrink-0"
-              >
-                <rect
-                  x="1"
-                  y="1"
-                  width="22"
+          {hasTeacher && (
+            <>
+              <li className="inline-flex items-center gap-2">
+                <svg
+                  width="24"
                   height="10"
-                  className="fill-ink/10 stroke-muted"
-                  strokeDasharray="4 3"
-                />
-              </svg>
-              Positionnement enseignant (publié)
-            </li>
+                  viewBox="0 0 24 10"
+                  className="shrink-0"
+                >
+                  <line
+                    x1="0"
+                    y1="5"
+                    x2="24"
+                    y2="5"
+                    className="stroke-accent"
+                    strokeWidth={2.5}
+                  />
+                  <rect x="9" y="2" width="6" height="6" className="fill-accent" />
+                </svg>
+                Auto-positionnement
+              </li>
+              <li className="inline-flex items-center gap-2">
+                <svg
+                  width="24"
+                  height="12"
+                  viewBox="0 0 24 12"
+                  className="shrink-0"
+                >
+                  <rect
+                    x="1"
+                    y="1"
+                    width="22"
+                    height="10"
+                    className="fill-ink/10 stroke-muted"
+                    strokeDasharray="4 3"
+                  />
+                </svg>
+                Enseignant
+              </li>
+            </>
           )}
-        </ul>
-
-        {/* Légende visible (valeurs) — masquée aux lecteurs d'écran qui disposent du tableau ci-dessous */}
-        <ul className="grid gap-1 sm:grid-cols-2" aria-hidden="true">
           {scores.map((s) => {
             const color = safeColor(s.color);
             return (
-              <li key={s.code} className="flex items-baseline gap-2">
+              <li key={s.code} className="inline-flex items-center gap-2">
                 <span
-                  className="inline-block size-2.5 shrink-0 -translate-y-px rounded-full bg-muted"
+                  className="size-2.5 shrink-0 bg-muted"
                   style={color ? { backgroundColor: color } : undefined}
                 />
-                <span className="min-w-0">
-                  <span className="font-mono text-xs font-semibold">
-                    {s.code}
-                  </span>{" "}
+                <span>
+                  <span className="font-semibold text-ink">{s.code}</span>{" "}
                   {s.name}
-                  <span className="block font-mono text-xs text-muted tabular-nums">
-                    auto {fmt(s.self)}
-                    {showTeacher ? ` · ens. ${fmt(s.teacher)}` : ""} ·{" "}
-                    {s.learnings} AC
-                  </span>
                 </span>
               </li>
             );
@@ -284,10 +279,7 @@ export function CompetenceRadar({
         </ul>
 
         {!hasSelf && !hasTeacher && (
-          <p className="text-muted">
-            Pas encore de données : le radar se remplit avec vos
-            auto-évaluations et vos traces.
-          </p>
+          <p className="text-muted">Aucune donnée pour l&apos;instant.</p>
         )}
       </figcaption>
 

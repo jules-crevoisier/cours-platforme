@@ -10,7 +10,6 @@ import { MarkAllReadButton, OpenNotificationButton } from "./_components/notific
 import { cleanupReadNotifications } from "./_lib/cleanup";
 import {
   NOTIFICATIONS_PAGE_SIZE,
-  READ_RETENTION_DAYS,
   notificationTypeLabel,
   pageCount,
   pageSlices,
@@ -31,24 +30,21 @@ function pageHref(page: number) {
 function ItemContent({ n, now }: { n: Item; now: Date }) {
   const unread = !n.readAt;
   return (
-    <span className="flex min-w-0 flex-1 gap-3">
-      <span aria-hidden="true" className={`mt-2 size-2 shrink-0 rounded-full ${unread ? "bg-accent" : "bg-transparent"}`} />
-      <span className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="font-mono text-xs tracking-wide text-muted uppercase">{notificationTypeLabel(n.type)}</span>
-          {unread && <span className="sr-only">(non lue)</span>}
-          <time dateTime={n.createdAt.toISOString()} title={formatDateTime(n.createdAt)} className="font-mono text-xs text-muted">
-            {timeAgo(n.createdAt, now)}
-          </time>
-        </span>
-        <span className={`break-words ${unread ? "font-semibold" : "font-medium"}`}>{n.title}</span>
-        {n.body && <span className="line-clamp-3 text-sm break-words whitespace-pre-line text-muted">{n.body}</span>}
+    <span className="flex min-w-0 flex-1 flex-col gap-1">
+      <span className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">
+        <span>{notificationTypeLabel(n.type)}</span>
+        {unread && <span className="sr-only">(non lue)</span>}
+        <time dateTime={n.createdAt.toISOString()} title={formatDateTime(n.createdAt)}>
+          {timeAgo(n.createdAt, now)}
+        </time>
       </span>
+      <span className={`break-words ${unread ? "font-semibold" : "font-medium"}`}>{n.title}</span>
+      {n.body && <span className="line-clamp-3 text-sm break-words whitespace-pre-line text-muted">{n.body}</span>}
     </span>
   );
 }
 
-const rowClass = "flex min-h-11 w-full gap-3 px-4 py-3 text-left hover:bg-sunken";
+const rowClass = "flex min-h-11 w-full gap-3 px-3 py-3 text-left hover:bg-sunken";
 
 function NotificationRow({ n, now }: { n: Item; now: Date }) {
   const link = safeInternalPath(n.link);
@@ -70,7 +66,7 @@ function NotificationRow({ n, now }: { n: Item; now: Date }) {
     );
   }
   return (
-    <div className="flex w-full gap-3 px-4 py-3">
+    <div className="flex w-full gap-3 px-3 py-3">
       <ItemContent n={n} now={now} />
     </div>
   );
@@ -80,10 +76,10 @@ function Group({ id, title, items, now }: { id: string; title: string; items: It
   if (items.length === 0) return null;
   return (
     <section aria-labelledby={id} className="flex flex-col gap-2">
-      <h2 id={id} className="eyebrow">
+      <h2 id={id} className="text-sm font-semibold text-muted">
         {title}
       </h2>
-      <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-md border border-line bg-surface">
+      <ul className="divide-y divide-line border-y border-line">
         {items.map((n) => (
           <li key={n.id}>
             <NotificationRow n={n} now={now} />
@@ -137,31 +133,21 @@ export default async function NotificationsPage({ searchParams }: PageProps<"/no
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
       <PageHeader
-        eyebrow="Suivi"
         title="Notifications"
-        meta={<span aria-live="polite">{unreadCount === 0 ? "Tout est lu" : `${unreadCount} non lue${unreadCount > 1 ? "s" : ""}`}</span>}
+        meta={
+          total > 0 ? (
+            <span aria-live="polite">{unreadCount === 0 ? "Tout est lu" : `${unreadCount} non lue${unreadCount > 1 ? "s" : ""}`}</span>
+          ) : undefined
+        }
         actions={unreadCount > 0 ? <MarkAllReadButton action={markAllRead} /> : undefined}
       />
 
       {total === 0 ? (
-        <EmptyState
-          title="Aucune notification."
-          action={
-            <Link href="/todo" className="btn">
-              Voir ce qu&apos;il reste à faire
-            </Link>
-          }
-        >
-          Vous serez prévenu·e ici des commentaires sur vos auto-évaluations, des retours enseignants, des annonces et des
-          créneaux de soutenance.
-        </EmptyState>
+        <EmptyState>Aucune notification.</EmptyState>
       ) : (
         <>
           <Group id="notif-unread" title="Non lues" items={unread} now={now} />
-          <Group id="notif-read" title="Plus anciennes" items={read} now={now} />
-          <p className="text-xs text-muted">
-            Les notifications lues sont effacées automatiquement après {READ_RETENTION_DAYS} jours.
-          </p>
+          <Group id="notif-read" title="Lues" items={read} now={now} />
         </>
       )}
 
@@ -169,17 +155,17 @@ export default async function NotificationsPage({ searchParams }: PageProps<"/no
         <nav aria-label="Pagination" className="flex flex-wrap items-center justify-between gap-2">
           {current > 1 ? (
             <Link href={pageHref(current - 1)} className="btn" rel="prev">
-              ← Plus récentes
+              Précédent
             </Link>
           ) : (
             <span />
           )}
-          <span className="font-mono text-sm text-muted">
-            {current} / {pages}
+          <span className="text-sm text-muted">
+            Page {current} sur {pages}
           </span>
           {current < pages ? (
             <Link href={pageHref(current + 1)} className="btn" rel="next">
-              Plus anciennes →
+              Suivant
             </Link>
           ) : (
             <span />

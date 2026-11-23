@@ -2,6 +2,7 @@
 
 import { startTransition, useActionState, type FormEvent } from "react";
 import { LEVELS } from "@/lib/assessment";
+import { EmptyState } from "@/components/ui";
 import type { ActionResult, CriterionView } from "@/app/assessments/_lib/shared";
 
 type Criterion = CriterionView;
@@ -34,28 +35,20 @@ export function AssessForm({ action, criteria, existingItems, reflection }: Prop
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-10">
       {criteria.length === 0 ? (
-        <p className="card text-muted">
-          Aucun critère n&apos;est encore défini pour ce jalon : seule la réflexion globale est à compléter.
-        </p>
+        <EmptyState>Aucun critère.</EmptyState>
       ) : (
-        <ol className="flex flex-col gap-4">
-          {criteria.map((criterion, index) => {
+        <ol className="flex flex-col divide-y divide-line">
+          {criteria.map((criterion) => {
             const existing = existingItems[criterion.id];
             const legendId = `criterion-${criterion.id}`;
             return (
-              <li key={criterion.id}>
-                <fieldset
-                  className="card"
-                  aria-describedby={criterion.description ? `${legendId}-desc` : undefined}
-                >
+              <li key={criterion.id} className="py-6 first:pt-0">
+                <fieldset aria-describedby={criterion.description ? `${legendId}-desc` : undefined}>
                   <legend className="float-left w-full">
-                    <span className="flex flex-wrap items-baseline gap-2">
-                      <span className="text-sm text-muted">Critère {index + 1}</span>
-                      {criterion.code && <span className="badge font-mono text-ink">{criterion.code}</span>}
-                    </span>
-                    <span className="mt-1 block font-semibold break-words">{criterion.label}</span>
+                    {criterion.code && <span className="block text-sm text-muted">{criterion.code}</span>}
+                    <span className="block font-semibold break-words">{criterion.label}</span>
                     {criterion.learningLabel && (
                       <span className="mt-1 block text-sm font-normal break-words text-muted">{criterion.learningLabel}</span>
                     )}
@@ -74,7 +67,7 @@ export function AssessForm({ action, criteria, existingItems, reflection }: Prop
                           <label
                             key={level.value}
                             htmlFor={inputId}
-                            className="flex min-h-11 cursor-pointer items-start gap-3 rounded-md border border-line p-3 has-[:checked]:border-accent has-[:checked]:bg-accent-soft"
+                            className="flex min-h-11 cursor-pointer items-start gap-3 border border-line p-3 has-[:checked]:border-accent has-[:checked]:bg-accent-soft"
                           >
                             <input
                               id={inputId}
@@ -98,7 +91,7 @@ export function AssessForm({ action, criteria, existingItems, reflection }: Prop
 
                     <div>
                       <label htmlFor={`${legendId}-justification`} className="label">
-                        Justification <span className="font-normal text-muted">(preuves, exemples, liens)</span>
+                        Justification
                       </label>
                       <textarea
                         id={`${legendId}-justification`}
@@ -117,17 +110,13 @@ export function AssessForm({ action, criteria, existingItems, reflection }: Prop
         </ol>
       )}
 
-      <div className="card flex flex-col gap-2">
-        <label htmlFor="reflection" className="label text-base">
+      <div>
+        <label htmlFor="reflection" className="label">
           Réflexion globale
         </label>
-        <p id="reflection-help" className="text-sm text-muted">
-          Ce qui a fonctionné, les difficultés rencontrées, vos prochaines étapes.
-        </p>
         <textarea
           id="reflection"
           name="reflection"
-          aria-describedby="reflection-help"
           defaultValue={reflection}
           maxLength={10000}
           rows={6}
@@ -136,9 +125,6 @@ export function AssessForm({ action, criteria, existingItems, reflection }: Prop
       </div>
 
       <div className="flex flex-col gap-3">
-        <p className="text-sm text-muted">
-          Le brouillon peut être complété plus tard. Pour soumettre, un niveau est requis pour chaque critère.
-        </p>
         <div className="flex flex-col gap-2 sm:flex-row">
           <button type="submit" name="intent" value="draft" formNoValidate className="btn" disabled={pending}>
             {pending ? "Enregistrement…" : "Enregistrer le brouillon"}

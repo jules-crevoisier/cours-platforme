@@ -25,10 +25,20 @@ export function FavoriteButton({ kind, targetId, initial, label = "cette ressour
         })
       }
     >
-      <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill={fav ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8">
-        <path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" strokeLinejoin="round" />
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+        width="18"
+        height="18"
+        fill={fav ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinejoin="miter"
+        className={fav ? "text-accent" : undefined}
+      >
+        <path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" />
       </svg>
-      <span className="sr-only md:not-sr-only">{fav ? "Favori" : "Favori"}</span>
+      <span className="sr-only md:not-sr-only">Favori</span>
     </button>
   );
 }

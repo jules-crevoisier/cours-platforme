@@ -79,7 +79,7 @@ export function RegisterForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="card flex flex-col gap-4" noValidate>
+    <form onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
       <div>
         <label htmlFor="register-name" className="label">
           Nom complet
@@ -142,7 +142,7 @@ export function RegisterForm() {
         {pending ? "Création du compte…" : "Créer mon compte"}
       </button>
       <p className="text-sm text-muted">
-        Déjà inscrit ?{" "}
+        Déjà un compte ?{" "}
         <Link href="/login" className="link inline-flex min-h-11 items-center">
           Se connecter
         </Link>

@@ -59,7 +59,7 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="card flex flex-col gap-4" noValidate>
+    <form onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
       <div>
         <label htmlFor="login-email" className="label">
           E-mail

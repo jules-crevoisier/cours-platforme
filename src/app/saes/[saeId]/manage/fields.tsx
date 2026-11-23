@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { cx } from "@/components/ui";
 import { toInputDateTime } from "../../_lib/dates";
 import type { FormAction } from "../../_lib/form-state";
 import { ActionForm, SubmitButton } from "../../_components/action-form";
@@ -74,7 +75,7 @@ export function MilestoneFields({ idPrefix, defaults }: { idPrefix: string; defa
           Dépôt d&apos;URL requis
         </Checkbox>
         <Checkbox id={f("peerReviewEnabled")} name="peerReviewEnabled" defaultChecked={defaults?.peerReviewEnabled}>
-          Évaluation de la contribution entre membres du groupe
+          Évaluation entre pairs
         </Checkbox>
       </div>
     </div>
@@ -122,10 +123,21 @@ export function MoveButtons({
   );
 }
 
-/** Bloc repliable « Modifier » sans état client */
-export function EditDisclosure({ summary, children }: { summary: string; children: ReactNode }) {
+/**
+ * Bloc repliable (actions rares, formulaires de modification) sans état client.
+ * Dans une rangée `flex-wrap`, passer `className="open:basis-full"` pour que le contenu ouvert prenne toute la largeur.
+ */
+export function EditDisclosure({
+  summary,
+  children,
+  className,
+}: {
+  summary: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <details className="group">
+    <details className={cx("group", className)}>
       <summary className="btn cursor-pointer list-none [&::-webkit-details-marker]:hidden">
         {summary}
         <span aria-hidden="true" className="transition-transform group-open:rotate-180">

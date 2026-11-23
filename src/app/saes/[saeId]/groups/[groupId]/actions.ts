@@ -271,5 +271,5 @@ export async function checkAllDepositLinks(groupId: string): Promise<ActionResul
   ];
   if (recent) parts.push(`${recent} ignoré${recent > 1 ? "s" : ""} (vérifié${recent > 1 ? "s" : ""} il y a moins de 2 min)`);
   if (remaining) parts.push(`${remaining} restant${remaining > 1 ? "s" : ""} : relancez dans un instant`);
-  return { ok: true, message: `${parts.join(" · ")}.` };
+  return { ok: true, message: `${parts.join(", ")}.` };
 }

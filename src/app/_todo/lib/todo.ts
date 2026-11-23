@@ -24,7 +24,7 @@ export function bucketFor(due: Date | null, now: Date): Bucket {
 export type AssessmentStatus = "DRAFT" | "SUBMITTED";
 
 export const ASSESSMENT_LABELS: Record<AssessmentStatus | "NONE", string> = {
-  NONE: "Pas commencée",
+  NONE: "Non commencée",
   DRAFT: "Brouillon",
   SUBMITTED: "Soumise",
 };

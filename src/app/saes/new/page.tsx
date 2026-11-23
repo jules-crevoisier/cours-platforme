@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { assertAllowed, requireUser } from "@/lib/session";
 import { canCreateSae } from "@/lib/permissions";
 import { MMI_SAE_TEMPLATES } from "@/data/referentiel-mmi";
+import { PageHeader } from "@/components/ui";
 import { findCohortOptions, findEditableCourses } from "../_lib/queries";
 import { NewSaeForm } from "./new-sae-form";
 
@@ -15,19 +15,8 @@ export default async function NewSaePage() {
   const [courses, cohorts] = await Promise.all([findEditableCourses(user), findCohortOptions()]);
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <div>
-        <Link href="/saes" className="inline-flex min-h-11 items-center text-sm text-muted hover:underline">
-          ← Toutes les SAÉ
-        </Link>
-        <p className="eyebrow">Nouvelle SAÉ</p>
-        <h1 className="text-2xl font-semibold text-balance">Créer une SAÉ</h1>
-        <p className="mt-1 text-muted">
-          La SAÉ est créée en brouillon : vous pourrez rédiger le sujet, régler les jalons, les critères et les groupes
-          avant de la publier.
-        </p>
-      </div>
-
+    <div className="mx-auto flex max-w-2xl flex-col gap-10">
+      <PageHeader breadcrumbs={[{ label: "SAÉ", href: "/saes" }, { label: "Nouvelle" }]} title="Nouvelle SAÉ" />
       <NewSaeForm courses={courses} cohorts={cohorts} templates={MMI_SAE_TEMPLATES} />
     </div>
   );

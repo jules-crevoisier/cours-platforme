@@ -23,13 +23,13 @@ export function PeerReviewForm({ action, teammates, existing }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <ol className="flex flex-col gap-3">
+      <ol className="flex flex-col divide-y divide-line">
         {teammates.map((mate) => {
           const baseId = `peer-${mate.id}`;
           const mine = existing[mate.id];
           return (
-            <li key={mate.id}>
-              <fieldset className="card">
+            <li key={mate.id} className="py-5 first:pt-0">
+              <fieldset>
                 <legend className="float-left w-full font-semibold break-words">{mate.name}</legend>
                 <div className="clear-both flex flex-col gap-3 pt-2">
                   <div className="grid gap-2 sm:grid-cols-2">
@@ -39,7 +39,7 @@ export function PeerReviewForm({ action, teammates, existing }: Props) {
                         <label
                           key={level.value}
                           htmlFor={inputId}
-                          className="flex min-h-11 cursor-pointer items-start gap-3 rounded-md border border-line p-3 has-[:checked]:border-accent has-[:checked]:bg-accent-soft"
+                          className="flex min-h-11 cursor-pointer items-start gap-3 border border-line p-3 has-[:checked]:border-accent has-[:checked]:bg-accent-soft"
                         >
                           <input
                             id={inputId}
@@ -61,7 +61,7 @@ export function PeerReviewForm({ action, teammates, existing }: Props) {
                   </div>
                   <div>
                     <label htmlFor={`${baseId}-comment`} className="label">
-                      Commentaire <span className="font-normal text-muted">(optionnel, visible par l&apos;équipe pédagogique uniquement)</span>
+                      Commentaire <span className="font-normal text-muted">(facultatif, lu par l&apos;équipe pédagogique seulement)</span>
                       <span className="sr-only"> — {mate.name}</span>
                     </label>
                     <textarea

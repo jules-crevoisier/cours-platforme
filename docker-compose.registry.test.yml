@@ -10,7 +10,8 @@ services:
       MARIADB_DATABASE: ${MARIADB_DATABASE:-cours}
       MARIADB_USER: ${MARIADB_USER:-cours}
       MARIADB_PASSWORD: ${MARIADB_PASSWORD:?à définir}
-    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci", "--innodb-buffer-pool-size=64M", "--performance-schema=OFF"]
+    mem_limit: 256m
     volumes:
       - db-data:/var/lib/mysql
     healthcheck:
@@ -28,6 +29,7 @@ services:
       db:
         condition: service_healthy
     restart: "no"
+    mem_limit: 512m
 
   app:
     image: ghcr.io/jules-crevoisier/cours-platforme/app:test
@@ -41,6 +43,7 @@ services:
       PEERTUBE_HOSTS: ${PEERTUBE_HOSTS:-}
       LINK_CHECK_ALLOW_HOSTS: ${LINK_CHECK_ALLOW_HOSTS:-}
       PORT: 3000
+    mem_limit: 384m
     expose:
       - "3000"
     depends_on:

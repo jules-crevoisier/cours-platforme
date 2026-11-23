@@ -3,10 +3,10 @@ import { deadline, timeAgo } from "./format";
 
 describe("deadline", () => {
   const now = new Date("2026-10-13T08:00:00Z"); // mardi 10h à Paris
-  it("J-n en jours calendaires de Paris", () => {
-    expect(deadline(new Date("2026-10-16T06:00:00Z"), now)).toEqual({ label: "J-3", tone: "soon" }); // 70 h
-    expect(deadline(new Date("2026-10-16T16:00:00Z"), now)).toEqual({ label: "J-3", tone: "later" }); // 80 h
-    expect(deadline(new Date("2026-10-23T16:00:00Z"), now)).toEqual({ label: "J-10", tone: "later" });
+  it("dans n jours (calendaires de Paris), puis la date", () => {
+    expect(deadline(new Date("2026-10-16T06:00:00Z"), now)).toEqual({ label: "Dans 3 jours", tone: "soon" }); // 70 h
+    expect(deadline(new Date("2026-10-16T16:00:00Z"), now)).toEqual({ label: "Dans 3 jours", tone: "later" }); // 80 h
+    expect(deadline(new Date("2026-10-23T16:00:00Z"), now)).toEqual({ label: "23 oct.", tone: "later" });
   });
   it("aujourd'hui, demain, en retard, fait", () => {
     expect(deadline(new Date("2026-10-13T16:00:00Z"), now).label).toBe("Aujourd'hui");

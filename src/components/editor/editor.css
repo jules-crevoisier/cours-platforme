@@ -1,9 +1,9 @@
-/* L'éditeur reprend l'identité de l'application (police du corps, encre, surface) au lieu d'Inter. */
+/* L'éditeur reprend l'identité de l'application (police, encre, surface, angles droits) au lieu d'Inter. */
 .bn-root.cours-editor {
-  --bn-font-family: var(--font-body), system-ui, sans-serif;
+  --bn-font-family: var(--font-sans);
   --bn-colors-editor-text: var(--ink);
   --bn-colors-editor-background: var(--surface);
   --bn-colors-menu-text: var(--ink);
   --bn-colors-menu-background: var(--surface);
-  --bn-border-radius: 6px;
+  --bn-border-radius: 0;
 }

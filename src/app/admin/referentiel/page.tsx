@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { assertAllowed, requireUser } from "@/lib/session";
 import { canManageReferentiel, isStaff } from "@/lib/permissions";
 import { MMI_CRITICAL_LEARNINGS, MMI_PARCOURS } from "@/data/referentiel-mmi";
+import { EmptyState, PageHeader, StatusBadge } from "@/components/ui";
 import { ActionForm, SubmitButton } from "@/app/saes/_components/action-form";
 import { safeColor } from "@/app/saes/_lib/criteria";
 import { createLocalLearning, deleteLearning, updateLearningLabel } from "./actions";
@@ -52,61 +53,56 @@ export default async function ReferentielPage() {
   const total = competences.reduce((sum, c) => sum + c.learnings.length, 0);
 
   return (
-    <div className="space-y-8">
-      <header className="space-y-2">
-        <p className="eyebrow">Administration</p>
-        <h1 className="text-2xl font-semibold text-balance">Référentiel de compétences — BUT MMI</h1>
-        <p className="max-w-prose text-muted">
-          Compétences, composantes essentielles (CE) et apprentissages critiques (AC) utilisés par les critères des
-          SAÉ et les portfolios. {canEdit ? "Vous pouvez adapter les libellés et ajouter des AC locaux." : "Lecture seule."}
-        </p>
-        <p className="font-mono text-sm text-muted">
-          {plural(competences.length, "compétence")} · {total} AC
-        </p>
-        <p>
-          <Link href="/admin/referentiel/couverture" className="underline">
-            Voir la couverture des AC par les SAÉ →
+    <div className="flex flex-col gap-10">
+      <PageHeader
+        title="Référentiel de compétences"
+        actions={
+          <Link href="/admin/referentiel/couverture" className="btn">
+            Couverture des AC
           </Link>
-        </p>
-      </header>
+        }
+        meta={
+          competences.length > 0 ? (
+            <>
+              <span>BUT MMI</span>
+              <span>{plural(competences.length, "compétence")}</span>
+              <span>{total} AC</span>
+            </>
+          ) : undefined
+        }
+      />
 
       {competences.length === 0 ? (
-        <p className="card text-muted">
-          Le référentiel n&apos;est pas encore chargé en base. Lancez <span className="font-mono">npm run db:seed</span>{" "}
-          pour importer le programme national MMI.
-        </p>
+        <EmptyState>Référentiel vide.</EmptyState>
       ) : (
-        <ol className="space-y-4">
+        <ol className="divide-y divide-line border-y border-line">
           {competences.map((c) => {
             const labels = levelLabels(c.levelLabels);
             return (
               <li key={c.id}>
-                <details className="card group" open={competences.length <= 1}>
-                  <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
-                    <span
-                      aria-hidden="true"
-                      className="inline-block size-3 shrink-0 rounded-full bg-muted"
-                      style={{ backgroundColor: safeColor(c.color) }}
-                    />
+                <details className="group" open={competences.length <= 1}>
+                  <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 py-3 [&::-webkit-details-marker]:hidden">
+                    <span aria-hidden="true" className="inline-block size-3 shrink-0 bg-muted" style={{ backgroundColor: safeColor(c.color) }} />
                     <span className="min-w-0 flex-1">
-                      <span className="font-mono text-sm text-muted">{c.code}</span>{" "}
-                      <span className="font-semibold">{c.name}</span>
+                      <span className="font-semibold">
+                        {c.code} {c.name}
+                      </span>
                       {c.description && <span className="block text-sm text-muted">{c.description}</span>}
                     </span>
-                    <span className="font-mono text-xs text-muted">{c.learnings.length} AC</span>
+                    <span className="text-sm text-muted">{c.learnings.length} AC</span>
                     <span aria-hidden="true" className="transition-transform group-open:rotate-180">
                       ▾
                     </span>
                   </summary>
 
-                  <div className="mt-4 space-y-5 border-t border-line pt-4">
+                  <div className="flex flex-col gap-6 pt-2 pb-6 sm:pl-6">
                     {c.components.length > 0 && (
                       <div>
-                        <h3 className="eyebrow">Composantes essentielles</h3>
-                        <ul className="mt-2 space-y-1 text-sm">
+                        <h3 className="text-base">Composantes essentielles</h3>
+                        <ul className="mt-2 flex flex-col gap-1 text-sm">
                           {c.components.map((ce) => (
                             <li key={ce.id} className="break-words">
-                              <span className="mr-2 font-mono text-xs text-muted">{ce.code}</span>
+                              <span className="mr-2 font-semibold">{ce.code}</span>
                               {ce.label}
                             </li>
                           ))}
@@ -119,40 +115,38 @@ export default async function ReferentielPage() {
                       if (learnings.length === 0) return null;
                       return (
                         <div key={level}>
-                          <h3 className="font-medium">
-                            Niveau {level}
-                            {labels[level - 1] && <span className="font-normal text-muted"> — {labels[level - 1]}</span>}
+                          <h3 className="flex flex-wrap gap-x-3 text-base">
+                            <span>Niveau {level}</span>
+                            {labels[level - 1] && <span className="font-normal text-muted">{labels[level - 1]}</span>}
                           </h3>
                           <ul className="mt-2 divide-y divide-line">
                             {learnings.map((l) => {
                               const official = OFFICIAL.get(l.code);
+                              const adapted = !!official && official !== l.label;
                               const used = l._count.criteria + l._count.evidences;
                               return (
-                                <li key={l.id} className="space-y-2 py-3">
+                                <li key={l.id} className="flex flex-col gap-2 py-3">
                                   <p className="break-words">
-                                    <span className="badge mr-2 font-mono">{l.code}</span>
+                                    <span className="mr-2 font-semibold">{l.code}</span>
                                     {l.label}
                                   </p>
-                                  <p className="flex flex-wrap gap-2 text-xs">
-                                    {!official && <span className="badge badge-accent">AC local</span>}
-                                    {official && official !== l.label && (
-                                      <span className="badge badge-warn" title={`Libellé national : ${official}`}>
-                                        Libellé adapté
-                                      </span>
-                                    )}
-                                    {l.parcours && <span className="badge">Parcours {l.parcours}</span>}
-                                    <span className="badge">{plural(l._count.criteria, "critère")}</span>
-                                    <span className="badge">{plural(l._count.evidences, "trace")}</span>
+                                  <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">
+                                    {/* Un seul badge : AC local ou libellé adapté (exclusifs) */}
+                                    {!official && <StatusBadge>AC local</StatusBadge>}
+                                    {adapted && <StatusBadge tone="warn">Libellé adapté</StatusBadge>}
+                                    {l.parcours && <span>Parcours {l.parcours}</span>}
+                                    <span>{plural(l._count.criteria, "critère")}</span>
+                                    <span>{plural(l._count.evidences, "trace")}</span>
                                   </p>
                                   {canEdit && (
                                     <div className="flex flex-wrap items-start gap-2">
-                                      <details className="group/edit">
+                                      <details>
                                         <summary className="btn cursor-pointer list-none [&::-webkit-details-marker]:hidden">
                                           Modifier le libellé
                                         </summary>
                                         <ActionForm
                                           action={updateLearningLabel}
-                                          className="mt-3 space-y-2"
+                                          className="mt-3 flex flex-col items-start gap-2"
                                           aria-label={`Modifier ${l.code}`}
                                         >
                                           <input type="hidden" name="learningId" value={l.id} />
@@ -162,33 +156,23 @@ export default async function ReferentielPage() {
                                           <textarea
                                             id={`label-${l.id}`}
                                             name="label"
-                                            className="input py-2"
+                                            className="input"
                                             rows={2}
                                             required
                                             maxLength={1000}
                                             defaultValue={l.label}
                                           />
-                                          {official && official !== l.label && (
-                                            <p className="text-xs text-muted">Libellé national : {official}</p>
-                                          )}
+                                          {adapted && <p className="text-sm text-muted">Libellé national : {official}</p>}
                                           <SubmitButton pendingLabel="Enregistrement…">Enregistrer</SubmitButton>
                                         </ActionForm>
                                       </details>
-                                      {used === 0 ? (
-                                        <ActionForm
-                                          action={deleteLearning}
-                                          quiet
-                                          confirmMessage={`Supprimer ${l.code} du référentiel ?`}
-                                        >
+                                      {used === 0 && (
+                                        <ActionForm action={deleteLearning} quiet confirmMessage={`Supprimer ${l.code} du référentiel ?`}>
                                           <input type="hidden" name="learningId" value={l.id} />
                                           <SubmitButton className="btn btn-danger" pendingLabel="Suppression…">
                                             Supprimer
                                           </SubmitButton>
                                         </ActionForm>
-                                      ) : (
-                                        <span className="self-center text-xs text-muted">
-                                          Utilisé : suppression impossible
-                                        </span>
                                       )}
                                     </div>
                                   )}
@@ -208,11 +192,11 @@ export default async function ReferentielPage() {
       )}
 
       {canEdit && competences.length > 0 && (
-        <section aria-labelledby="ajout-ac" className="space-y-3">
-          <h2 id="ajout-ac" className="text-xl font-semibold">
+        <section aria-labelledby="ajout-ac" className="flex flex-col gap-4">
+          <h2 id="ajout-ac" className="text-xl">
             Ajouter un AC local
           </h2>
-          <ActionForm action={createLocalLearning} resetOnSuccess className="card space-y-4" aria-label="Ajouter un AC local">
+          <ActionForm action={createLocalLearning} resetOnSuccess className="flex max-w-3xl flex-col gap-4" aria-label="Ajouter un AC local">
             <div className="grid gap-4 md:grid-cols-[12rem_minmax(0,1fr)]">
               <div>
                 <label htmlFor="ac-code" className="label">
@@ -227,8 +211,11 @@ export default async function ReferentielPage() {
                   placeholder="AC24.07"
                   autoComplete="off"
                   aria-describedby="ac-code-hint"
-                  className="input font-mono uppercase"
+                  className="input"
                 />
+                <p id="ac-code-hint" className="mt-1 text-sm text-muted">
+                  Format AC24.07
+                </p>
               </div>
               <div>
                 <label htmlFor="ac-parcours" className="label">
@@ -243,17 +230,16 @@ export default async function ReferentielPage() {
                   ))}
                 </select>
               </div>
-              <p id="ac-code-hint" className="text-xs text-muted md:col-span-2">
-                AC + niveau (1 à 3) + compétence (1 à 5) + « . » + numéro : AC24.07 = niveau 2, C4 Développer.
-              </p>
               <div className="md:col-span-2">
                 <label htmlFor="ac-label" className="label">
                   Libellé
                 </label>
-                <textarea id="ac-label" name="label" required maxLength={1000} rows={2} className="input py-2" />
+                <textarea id="ac-label" name="label" required maxLength={1000} rows={2} className="input" />
               </div>
             </div>
-            <SubmitButton pendingLabel="Ajout…">Ajouter l&apos;AC</SubmitButton>
+            <div>
+              <SubmitButton pendingLabel="Ajout…">Ajouter l&apos;AC</SubmitButton>
+            </div>
           </ActionForm>
         </section>
       )}

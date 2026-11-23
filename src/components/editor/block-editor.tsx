@@ -30,7 +30,7 @@ type Props = {
 type Status = "idle" | "dirty" | "saving" | "saved" | "error";
 
 const STATUS_LABEL: Record<Status, string> = {
-  idle: "",
+  idle: "Enregistrement automatique",
   dirty: "Modifications non enregistrées…",
   saving: "Enregistrement…",
   saved: "Enregistré",
@@ -42,7 +42,7 @@ const NO_HOSTS: string[] = [];
 /**
  * Éditeur « à la Notion » : tapez « / » pour insérer un bloc (dont « Intégration » : Figma, YouTube, CodePen…),
  * le Markdown est reconnu à la frappe (#, -, 1., ```, >) et au collage. Blocs de code colorés.
- * Enregistre automatiquement 1 s après la dernière frappe.
+ * Enregistre automatiquement 1 s après la dernière frappe ; seul l'état d'enregistrement est affiché (pas de mode d'emploi).
  */
 export default function BlockEditor({ initialContent, initialMarkdown, editable = false, onSave, peertubeHosts = NO_HOSTS }: Props) {
   const canEdit = editable && !!onSave;
@@ -104,15 +104,18 @@ export default function BlockEditor({ initialContent, initialMarkdown, editable 
   }
 
   return (
-    <div className="rounded-md border border-line bg-surface">
+    <div className="border border-line bg-surface">
       {canEdit && (
-        <div className="flex min-h-9 flex-wrap items-center justify-between gap-x-2 border-b border-line px-3 text-sm text-muted">
-          <span>Tapez « / » pour insérer un bloc — Markdown accepté</span>
-          <span role="status" aria-live="polite" className={status === "error" ? "text-danger" : undefined}>
-            {STATUS_LABEL[status]}
-            {error ? ` : ${error}` : ""}
-          </span>
-        </div>
+        <p
+          role="status"
+          aria-live="polite"
+          className={`flex min-h-9 items-center justify-end border-b border-line px-3 text-sm ${
+            status === "error" ? "font-semibold text-danger" : "text-muted"
+          }`}
+        >
+          {STATUS_LABEL[status]}
+          {error ? ` : ${error}` : ""}
+        </p>
       )}
       <div className="py-4">
         <BlockNoteView

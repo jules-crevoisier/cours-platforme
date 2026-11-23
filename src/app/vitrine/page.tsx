@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/session";
 import { isStaff } from "@/lib/permissions";
 import type { Prisma } from "@/generated/prisma/client";
 import { publicName } from "@/app/me/portfolio/_lib/shared";
+import { EmptyState, PageHeader } from "@/components/ui";
 import { ShowcaseCard } from "./_components/showcase-card";
 import { SHOWCASE_CATEGORIES, SHOWCASE_CATEGORY_LABELS, isShowcaseCategory } from "./_lib/showcase";
 
@@ -71,21 +72,23 @@ export default async function VitrinePage({ searchParams }: PageProps<"/vitrine"
 
   return (
     <div className="flex flex-col gap-8">
-      <header className="flex flex-col gap-3">
-        <p className="eyebrow font-mono">Département MMI · Projets étudiants</p>
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <h1 className="text-3xl leading-tight font-semibold text-balance">Vitrine des projets</h1>
-          {user && isStaff(user) && (
+      <PageHeader
+        title="Vitrine"
+        meta={
+          total > 0 ? (
+            <span>
+              {total} projet{total > 1 ? "s" : ""}
+            </span>
+          ) : undefined
+        }
+        actions={
+          user && isStaff(user) ? (
             <Link href="/vitrine/moderation" className="btn">
               Modération
             </Link>
-          )}
-        </div>
-        <p className="max-w-prose text-muted">
-          Sites, identités visuelles, films, animations et prototypes réalisés en SAÉ, proposés par les groupes et
-          validés par l&apos;équipe pédagogique. Chaque carte ouvre le projet sur son hébergement d&apos;origine.
-        </p>
-      </header>
+          ) : undefined
+        }
+      />
 
       <form method="get" action="/vitrine" className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end" role="search" aria-label="Filtrer les projets">
         <div className="sm:w-60">
@@ -93,7 +96,7 @@ export default async function VitrinePage({ searchParams }: PageProps<"/vitrine"
             Catégorie
           </label>
           <select id="filtre-categorie" name="categorie" defaultValue={category ?? ""} className="input">
-            <option value="">Toutes les catégories</option>
+            <option value="">Toutes</option>
             {SHOWCASE_CATEGORIES.map((c) => (
               <option key={c} value={c}>
                 {SHOWCASE_CATEGORY_LABELS[c]}
@@ -120,75 +123,56 @@ export default async function VitrinePage({ searchParams }: PageProps<"/vitrine"
           </button>
           {filtered && (
             <Link href="/vitrine" className="btn btn-ghost">
-              Réinitialiser
+              Effacer
             </Link>
           )}
         </div>
       </form>
 
-      <section aria-labelledby="vitrine-results" className="flex flex-col gap-4">
-        <h2 id="vitrine-results" className="font-mono text-sm text-muted">
-          {total === 0
-            ? "Aucun projet"
-            : `${total} projet${total > 1 ? "s" : ""}${filtered ? " correspondant aux filtres" : ""}`}
-        </h2>
+      {groups.length === 0 ? (
+        <EmptyState>{filtered ? "Aucun résultat." : "Aucun projet."}</EmptyState>
+      ) : (
+        <ul aria-label="Projets" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {groups.map((g) => (
+            <li key={g.id}>
+              <ShowcaseCard
+                id={g.id}
+                title={g.showcaseTitle ?? "Projet sans titre"}
+                summary={g.showcaseSummary}
+                url={g.showcaseUrl}
+                imageUrl={g.showcaseImageUrl}
+                category={g.showcaseCategory}
+                saeCode={g.sae.code}
+                saeTitle={g.sae.title}
+                semester={g.sae.semester}
+                members={g.members.map((m) => publicName(m.user.name))}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
 
-        {groups.length === 0 ? (
-          <div className="card flex flex-col gap-2">
-            <p>
-              {filtered
-                ? "Aucun projet publié ne correspond à ces filtres."
-                : "Aucun projet publié pour l'instant. Les groupes peuvent proposer leur projet depuis leur espace de groupe."}
-            </p>
-            {filtered && (
-              <Link href="/vitrine" className="self-start text-accent underline">
-                Voir tous les projets
-              </Link>
-            )}
-          </div>
-        ) : (
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {groups.map((g) => (
-              <li key={g.id}>
-                <ShowcaseCard
-                  headingLevel="h3"
-                  title={g.showcaseTitle ?? "Projet sans titre"}
-                  summary={g.showcaseSummary}
-                  url={g.showcaseUrl}
-                  imageUrl={g.showcaseImageUrl}
-                  category={g.showcaseCategory}
-                  saeCode={g.sae.code}
-                  saeTitle={g.sae.title}
-                  semester={g.sae.semester}
-                  members={g.members.map((m) => publicName(m.user.name))}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {pageCount > 1 && (
-          <nav aria-label="Pagination" className="flex flex-wrap items-center justify-between gap-2">
-            {page > 1 ? (
-              <Link href={hrefWith({ categorie: category, semestre: semester, page: page - 1 })} className="btn" rel="prev">
-                ← Précédents
-              </Link>
-            ) : (
-              <span />
-            )}
-            <span className="font-mono text-sm text-muted tabular-nums">
-              Page {page} / {pageCount}
-            </span>
-            {page < pageCount ? (
-              <Link href={hrefWith({ categorie: category, semestre: semester, page: page + 1 })} className="btn" rel="next">
-                Suivants →
-              </Link>
-            ) : (
-              <span />
-            )}
-          </nav>
-        )}
-      </section>
+      {pageCount > 1 && (
+        <nav aria-label="Pagination" className="flex flex-wrap items-center justify-between gap-2">
+          {page > 1 ? (
+            <Link href={hrefWith({ categorie: category, semestre: semester, page: page - 1 })} className="btn" rel="prev">
+              Précédent
+            </Link>
+          ) : (
+            <span />
+          )}
+          <span className="text-sm text-muted">
+            Page {page} sur {pageCount}
+          </span>
+          {page < pageCount ? (
+            <Link href={hrefWith({ categorie: category, semestre: semester, page: page + 1 })} className="btn" rel="next">
+              Suivant
+            </Link>
+          ) : (
+            <span />
+          )}
+        </nav>
+      )}
     </div>
   );
 }

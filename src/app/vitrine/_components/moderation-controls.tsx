@@ -68,9 +68,9 @@ export function ModerationControls({ status, groupName, action }: Props) {
       {asking && (
         <form onSubmit={handleReason} className="flex flex-col gap-2">
           <label htmlFor={reasonId} className="label">
-            Motif <span className="font-normal text-muted">(facultatif, envoyé aux membres du groupe)</span>
+            Motif <span className="font-normal text-muted">(facultatif, envoyé au groupe)</span>
           </label>
-          <textarea id={reasonId} name="reason" rows={3} maxLength={500} className="input py-2" />
+          <textarea id={reasonId} name="reason" rows={3} maxLength={500} className="input" />
           <div className="flex flex-wrap gap-2">
             <button type="submit" className="btn btn-danger" disabled={pending}>
               {pending ? "En cours…" : asking === "refuse" ? "Confirmer le refus" : "Confirmer le retrait"}

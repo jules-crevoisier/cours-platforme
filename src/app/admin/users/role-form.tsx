@@ -34,7 +34,6 @@ export function RoleForm({ action, userName, currentRole, roles, locked = false 
           Appliquer
         </SubmitButton>
       </div>
-      {locked && <p className="text-xs text-muted">Vous ne pouvez pas modifier votre propre rôle.</p>}
     </ActionForm>
   );
 }

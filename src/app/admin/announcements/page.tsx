@@ -3,8 +3,7 @@ import { db } from "@/lib/db";
 import { assertAllowed, requireUser } from "@/lib/session";
 import { canAnnounce, isAdmin } from "@/lib/permissions";
 import { formatDateTime, timeAgo } from "@/lib/format";
-import { EmptyState, PageHeader } from "@/components/ui";
-import { AdminNav } from "@/app/admin/users/_components/admin-nav";
+import { EmptyState, PageHeader, StatusBadge } from "@/components/ui";
 import { ActionForm, SubmitButton } from "@/app/admin/users/_components/action-form";
 import { createAnnouncement, deleteAnnouncement } from "./actions";
 import { AnnouncementForm } from "./_components/announcement-form";
@@ -47,53 +46,42 @@ export default async function AnnouncementsPage() {
 
   const cohortOptions = cohorts.map((c) => ({
     id: c.id,
-    label: `${c.name} · ${c.academicYear} (${c._count.members} membre${c._count.members > 1 ? "s" : ""})`,
+    label: `${c.name} (${c.academicYear}), ${c._count.members} membre${c._count.members > 1 ? "s" : ""}`,
   }));
   const now = new Date();
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-3">
-        <AdminNav user={user} current="announcements" />
-        <PageHeader
-          eyebrow={isAdmin(user) ? "Administration" : "Équipe pédagogique"}
-          title="Annonces"
-          lead={
-            allowGlobal
-              ? "Écrivez à tout le département ou à une promo. Les destinataires reçoivent une notification et l'annonce s'affiche sur leur accueil."
-              : "Écrivez à une promo : ses membres reçoivent une notification et l'annonce s'affiche sur leur accueil. Les annonces de SAÉ se publient depuis la SAÉ."
-          }
-        />
-      </div>
+    <div className="flex flex-col gap-10">
+      <PageHeader title="Annonces" />
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start">
-        <section aria-labelledby="announcement-list" className="order-2 flex min-w-0 flex-col gap-3 lg:order-1">
-          <h2 id="announcement-list" className="text-lg font-semibold">
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start">
+        <section aria-labelledby="announcement-list" className="order-2 flex min-w-0 flex-col gap-4 lg:order-1">
+          <h2 id="announcement-list" className="text-xl">
             Annonces publiées
           </h2>
           {announcements.length === 0 ? (
-            <EmptyState title="Aucune annonce pour l'instant.">La première que vous publierez apparaîtra ici.</EmptyState>
+            <EmptyState>Aucune annonce.</EmptyState>
           ) : (
-            <ul className="flex flex-col gap-3">
+            <ul className="divide-y divide-line border-y border-line">
               {announcements.map((a) => {
                 const canDelete = a.authorId === user.id || isAdmin(user);
                 return (
-                  <li key={a.id} className="card flex flex-col gap-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      {a.scope === "GLOBAL" ? (
-                        <span className="badge badge-accent">Globale</span>
-                      ) : (
-                        <span className="badge">
-                          Promo · {a.cohort ? `${a.cohort.name} (${a.cohort.academicYear})` : "supprimée"}
-                        </span>
-                      )}
-                      {a.pinned && <span className="badge badge-warn">Épinglée</span>}
+                  <li key={a.id} className="flex flex-col gap-2 py-4">
+                    <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                      <h3 className="text-base break-words">{a.title}</h3>
+                      {a.pinned && <StatusBadge tone="warn">Épinglée</StatusBadge>}
                     </div>
-                    <h3 className="text-base font-semibold break-words">{a.title}</h3>
                     <p className="max-w-prose text-sm break-words whitespace-pre-line">{a.body}</p>
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-xs text-muted">
-                        {a.authorId === user.id ? "Vous" : a.author.name} ·{" "}
+                      <p className="flex flex-wrap gap-x-4 text-sm text-muted">
+                        <span>
+                          {a.scope === "GLOBAL"
+                            ? "Tout le monde"
+                            : a.cohort
+                              ? `${a.cohort.name} (${a.cohort.academicYear})`
+                              : "Promo supprimée"}
+                        </span>
+                        <span>{a.authorId === user.id ? "Vous" : a.author.name}</span>
                         <time dateTime={a.createdAt.toISOString()} title={formatDateTime(a.createdAt)}>
                           {timeAgo(a.createdAt, now)}
                         </time>
@@ -115,13 +103,10 @@ export default async function AnnouncementsPage() {
               })}
             </ul>
           )}
-          {announcements.length === LIST_LIMIT && (
-            <p className="text-sm text-muted">Les {LIST_LIMIT} annonces les plus récentes sont affichées.</p>
-          )}
         </section>
 
-        <section aria-labelledby="announcement-new" className="card order-1 flex flex-col gap-4 lg:order-2">
-          <h2 id="announcement-new" className="text-lg font-semibold">
+        <section aria-labelledby="announcement-new" className="order-1 flex flex-col gap-4 lg:order-2">
+          <h2 id="announcement-new" className="text-xl">
             Nouvelle annonce
           </h2>
           <AnnouncementForm action={createAnnouncement} allowGlobal={allowGlobal} cohorts={allowCohort ? cohortOptions : []} />

@@ -6,9 +6,19 @@ import type { EditorInstance } from "./schema";
 
 function EmbedIcon() {
   return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <rect x="3" y="5" width="18" height="14" rx="2" />
-      <path d="M10 9.5l4.5 2.5-4.5 2.5z" strokeLinejoin="round" />
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      width="18"
+      height="18"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="square"
+      strokeLinejoin="miter"
+    >
+      <path d="M3 5h18v14H3z" />
+      <path d="M10 9.5l4.5 2.5-4.5 2.5z" />
     </svg>
   );
 }

@@ -111,12 +111,8 @@ export function EvidenceForm({ action, groups, initial, defaultLearningId }: Pro
           spellCheck={false}
           defaultValue={initial?.url}
           placeholder="https://"
-          aria-describedby={f("url-help")}
           className="input"
         />
-        <p id={f("url-help")} className="mt-1 text-xs text-muted">
-          Dépôt, maquette, vidéo, document partagé… Aucun fichier n&apos;est stocké ici.
-        </p>
       </div>
 
       <div>
@@ -129,13 +125,8 @@ export function EvidenceForm({ action, groups, initial, defaultLearningId }: Pro
           rows={4}
           maxLength={5000}
           defaultValue={initial?.reflection}
-          aria-describedby={f("reflection-help")}
           className="input py-2"
         />
-        <p id={f("reflection-help")} className="mt-1 text-xs text-muted">
-          En quoi cette trace prouve-t-elle l&apos;apprentissage ? Ce que vous avez fait, appris, et ce que vous
-          referiez autrement.
-        </p>
       </div>
 
       <fieldset className="flex flex-col gap-2">
@@ -146,7 +137,7 @@ export function EvidenceForm({ action, groups, initial, defaultLearningId }: Pro
           {LEVELS.map((l) => (
             <label
               key={l.value}
-              className="flex min-h-11 cursor-pointer items-start gap-3 rounded-md border border-line bg-surface p-3 has-[:checked]:border-accent has-[:checked]:bg-accent-soft"
+              className="flex min-h-11 cursor-pointer items-start gap-3 border border-line bg-surface p-3 has-[:checked]:border-accent has-[:checked]:bg-accent-soft"
             >
               <input
                 type="radio"
@@ -158,7 +149,7 @@ export function EvidenceForm({ action, groups, initial, defaultLearningId }: Pro
               />
               <span className="flex flex-col">
                 <span className="text-sm font-medium">
-                  <span className="font-mono">{l.value}</span> · {l.label}
+                  {l.value} {l.label}
                 </span>
                 <span className="text-xs text-muted">{l.hint}</span>
               </span>

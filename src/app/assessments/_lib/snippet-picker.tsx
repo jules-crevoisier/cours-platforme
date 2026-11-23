@@ -56,20 +56,20 @@ export function SnippetPicker({ snippets, targetId, defaultTag, maxLength = MAX_
     target.focus();
     target.setSelectionRange(next.length, next.length);
     setSelectedId("");
-    setMessage({ ok: true, text: "Commentaire type inséré à la fin du champ." });
+    setMessage({ ok: true, text: "Commentaire type inséré." });
   }
 
   return (
-    <details className="rounded-md border border-line bg-sunken">
-      <summary className="flex min-h-11 cursor-pointer items-center px-3 text-sm font-medium">
+    <details className="border border-line">
+      <summary className="flex min-h-11 cursor-pointer items-center px-3 text-sm font-semibold">
         Insérer un commentaire type
       </summary>
       <div className="flex flex-col gap-3 border-t border-line p-3">
         {snippets.length === 0 ? (
           <p className="text-sm text-muted">
-            Votre banque de commentaires est vide.{" "}
-            <Link href="/me/comment-bank" className="text-accent underline">
-              Créer des commentaires types
+            Aucun commentaire type.{" "}
+            <Link href="/me/comment-bank" className="link">
+              Banque de commentaires
             </Link>
           </p>
         ) : (
@@ -126,8 +126,8 @@ export function SnippetPicker({ snippets, targetId, defaultTag, maxLength = MAX_
               <button type="button" onClick={insert} className="btn" disabled={selectedId === ""}>
                 Insérer
               </button>
-              <Link href="/me/comment-bank" className="inline-flex min-h-11 items-center text-sm text-accent underline">
-                Gérer mes commentaires types
+              <Link href="/me/comment-bank" className="link inline-flex min-h-11 items-center text-sm">
+                Banque de commentaires
               </Link>
             </div>
           </>

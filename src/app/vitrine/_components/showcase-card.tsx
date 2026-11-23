@@ -1,7 +1,12 @@
 // Carte de projet de la vitrine (rendu serveur). Aucune donnée personnelle au-delà des noms fournis.
+// Toute la carte ouvre le projet sur son hébergement d'origine ; visuel du groupe ou, à défaut, une pastille Swatch.
+import type { ReactNode } from "react";
+import { Swatch } from "@/components/ui";
 import { categoryLabel } from "../_lib/showcase";
 
 type Props = {
+  /** Identifiant du groupe : couleur stable de la pastille quand il n'y a pas d'image (le titre sinon) */
+  id?: string;
   title: string;
   summary: string | null;
   url: string | null;
@@ -13,11 +18,12 @@ type Props = {
   /** Noms déjà formatés pour l'affichage (« Léa B. » en public) */
   members: string[];
   headingLevel?: "h2" | "h3";
-  /** Mention de statut (ex. « En attente ») affichée au-dessus du titre */
-  status?: React.ReactNode;
+  /** Mention de statut (ex. « En attente ») ajoutée à la ligne de catégorie */
+  status?: ReactNode;
 };
 
 export function ShowcaseCard({
+  id,
   title,
   summary,
   url,
@@ -33,63 +39,45 @@ export function ShowcaseCard({
   const Heading = headingLevel;
   const safeImage = imageUrl && /^https:\/\//i.test(imageUrl) ? imageUrl : null;
   const safeUrl = url && /^https?:\/\//i.test(url) ? url : null;
-  const cat = categoryLabel(category);
 
   return (
-    <article className="card relative flex h-full flex-col overflow-hidden p-0 transition-colors has-[a:hover]:border-accent">
-      <div className="relative aspect-[16/9] w-full overflow-hidden border-b border-line bg-sunken">
-        {safeImage ? (
-          // Image externe fournie par le groupe : pas d'optimisation Next (images non optimisées), pas de référent
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={safeImage}
-            alt={`Visuel du projet « ${title} »`}
-            loading="lazy"
-            decoding="async"
-            referrerPolicy="no-referrer"
-            className="size-full object-cover"
-          />
+    <article className={`card relative flex h-full flex-col gap-3 ${safeUrl ? "transition-colors hover:border-ink" : ""}`}>
+      {safeImage ? (
+        // Image externe fournie par le groupe : pas d'optimisation Next (images non optimisées), pas de référent
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={safeImage}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          referrerPolicy="no-referrer"
+          className="aspect-[4/3] w-full bg-sunken object-cover"
+        />
+      ) : (
+        <Swatch seed={id ?? title} text={title} size="lg" />
+      )}
+      <Heading className="text-lg break-words">
+        {safeUrl ? (
+          <a href={safeUrl} target="_blank" rel="noopener noreferrer nofollow" className="after:absolute after:inset-0 hover:underline">
+            {title}
+            <span className="sr-only"> (s&apos;ouvre dans un nouvel onglet)</span>
+          </a>
         ) : (
-          <div className="flex size-full items-end p-4" aria-hidden="true">
-            <span className="font-mono text-xs tracking-wide text-muted uppercase">{cat}</span>
-          </div>
+          title
         )}
-      </div>
-      <div className="flex flex-1 flex-col gap-2 p-4">
-        <p className="flex flex-wrap items-center gap-2 font-mono text-xs text-muted">
-          <span className="badge badge-accent">{cat}</span>
-          {semester != null && <span>S{semester}</span>}
-          {status}
+      </Heading>
+      <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">
+        <span>{categoryLabel(category)}</span>
+        {saeCode ? <span title={saeTitle}>{saeCode}</span> : semester != null && <span>Semestre {semester}</span>}
+        {status}
+      </p>
+      {summary && <p className="line-clamp-4 text-sm whitespace-pre-line">{summary}</p>}
+      {members.length > 0 && (
+        <p className="mt-auto text-sm text-muted">
+          <span className="sr-only">Membres : </span>
+          {members.join(", ")}
         </p>
-        <Heading className="text-lg leading-tight font-semibold text-balance break-words">
-          {safeUrl ? (
-            <a
-              href={safeUrl}
-              target="_blank"
-              rel="noopener noreferrer nofollow"
-              className="after:absolute after:inset-0 hover:underline"
-            >
-              {title}
-              <span className="sr-only"> (s&apos;ouvre dans un nouvel onglet)</span>
-            </a>
-          ) : (
-            title
-          )}
-        </Heading>
-        {summary && <p className="text-sm whitespace-pre-line text-muted">{summary}</p>}
-        <div className="mt-auto flex flex-col gap-1 pt-2 text-sm">
-          <p className="font-mono text-xs text-muted">
-            {saeCode ? `${saeCode} · ` : ""}
-            {saeTitle}
-          </p>
-          {members.length > 0 && (
-            <p>
-              <span className="sr-only">Membres : </span>
-              {members.join(", ")}
-            </p>
-          )}
-        </div>
-      </div>
+      )}
     </article>
   );
 }

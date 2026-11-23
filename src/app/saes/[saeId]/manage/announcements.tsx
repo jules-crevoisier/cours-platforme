@@ -1,3 +1,4 @@
+import { EmptyState, StatusBadge } from "@/components/ui";
 import { formatDateTime } from "@/lib/format";
 import { createSaeAnnouncement, deleteSaeAnnouncement } from "../../actions";
 import { ActionForm, SubmitButton } from "../../_components/action-form";
@@ -12,23 +13,22 @@ export type ManagedAnnouncement = {
   author: { name: string };
 };
 
-type Props = { saeId: string; published: boolean; cohortLinked: boolean; announcements: ManagedAnnouncement[] };
+type Props = { saeId: string; announcements: ManagedAnnouncement[] };
 
-/** Annonces de la SAÉ : rédaction (texte brut) + liste avec suppression */
-export function AnnouncementsSection({ saeId, published, cohortLinked, announcements }: Props) {
+/** Onglet « Annonces » : rédaction (texte brut) + liste avec suppression */
+export function AnnouncementsSection({ saeId, announcements }: Props) {
   return (
-    <section aria-labelledby="annonces" className="scroll-mt-4 space-y-3">
-      <h2 id="annonces" className="text-xl font-semibold">
-        Annonces
-      </h2>
-      <p className="text-sm text-muted">
-        {published
-          ? `Chaque annonce notifie les membres des groupes${cohortLinked ? " et les étudiants de la promo liée" : ""}.`
-          : "SAÉ en brouillon : les annonces seront visibles à la publication, sans notification."}
-      </p>
-
-      <div className="card">
-        <ActionForm action={createSaeAnnouncement} resetOnSuccess className="space-y-3" aria-label="Publier une annonce">
+    <div className="flex flex-col gap-10">
+      <section aria-labelledby="nouvelle-annonce" className="flex flex-col gap-4">
+        <h2 id="nouvelle-annonce" className="text-xl">
+          Nouvelle annonce
+        </h2>
+        <ActionForm
+          action={createSaeAnnouncement}
+          resetOnSuccess
+          className="flex max-w-2xl flex-col gap-4"
+          aria-label="Publier une annonce"
+        >
           <input type="hidden" name="saeId" value={saeId} />
           <div>
             <label htmlFor="announcement-title" className="label">
@@ -38,45 +38,57 @@ export function AnnouncementsSection({ saeId, published, cohortLinked, announcem
           </div>
           <div>
             <label htmlFor="announcement-body" className="label">
-              Message <span className="font-normal text-muted">(texte brut, sauts de ligne conservés)</span>
+              Message
             </label>
             <textarea id="announcement-body" name="body" className="input py-2" rows={4} required maxLength={10000} />
           </div>
           <Checkbox id="announcement-pinned" name="pinned">
             Épingler en tête de la SAÉ
           </Checkbox>
-          <SubmitButton pendingLabel="Publication…">Publier l&apos;annonce</SubmitButton>
+          <div>
+            <SubmitButton pendingLabel="Publication…">Publier l&apos;annonce</SubmitButton>
+          </div>
         </ActionForm>
-      </div>
+      </section>
 
-      {announcements.length === 0 ? (
-        <p className="card text-muted">Aucune annonce. Utilisez-les pour les changements de salle, rappels de rendu, etc.</p>
-      ) : (
-        <ul className="space-y-2">
-          {announcements.map((a) => (
-            <li key={a.id} className="card space-y-2">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium break-words">
-                    {a.pinned && <span className="badge badge-accent mr-2">Épinglée</span>}
-                    {a.title}
-                  </p>
-                  <p className="text-xs text-muted">
-                    {a.author.name} · <time dateTime={a.createdAt.toISOString()}>{formatDateTime(a.createdAt)}</time>
-                  </p>
+      <section aria-labelledby="annonces-publiees" className="flex flex-col gap-4">
+        <h2 id="annonces-publiees" className="text-xl">
+          Publiées
+        </h2>
+        {announcements.length === 0 ? (
+          <EmptyState>Aucune annonce.</EmptyState>
+        ) : (
+          <ul className="divide-y divide-line">
+            {announcements.map((a) => (
+              <li key={a.id} className="flex flex-col gap-2 py-4 first:pt-0">
+                <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+                  <div className="flex min-w-0 flex-1 flex-col gap-1">
+                    <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                      <p className="font-semibold break-words">{a.title}</p>
+                      {a.pinned && <StatusBadge>Épinglée</StatusBadge>}
+                    </div>
+                    <p className="flex flex-wrap gap-x-4 text-sm text-muted">
+                      <span>{a.author.name}</span>
+                      <time dateTime={a.createdAt.toISOString()}>{formatDateTime(a.createdAt)}</time>
+                    </p>
+                  </div>
+                  <ActionForm action={deleteSaeAnnouncement} quiet confirmMessage={`Supprimer l'annonce « ${a.title} » ?`}>
+                    <input type="hidden" name="announcementId" value={a.id} />
+                    <SubmitButton
+                      className="btn btn-danger"
+                      pendingLabel="Suppression…"
+                      aria-label={`Supprimer l'annonce « ${a.title} »`}
+                    >
+                      Supprimer
+                    </SubmitButton>
+                  </ActionForm>
                 </div>
-                <ActionForm action={deleteSaeAnnouncement} quiet confirmMessage={`Supprimer l'annonce « ${a.title} » ?`}>
-                  <input type="hidden" name="announcementId" value={a.id} />
-                  <SubmitButton className="btn btn-danger" pendingLabel="Suppression…">
-                    Supprimer
-                  </SubmitButton>
-                </ActionForm>
-              </div>
-              <p className="text-sm break-words whitespace-pre-line">{a.body}</p>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+                <p className="max-w-prose break-words whitespace-pre-line">{a.body}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
   );
 }

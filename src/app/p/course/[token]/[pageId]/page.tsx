@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { formatDate } from "@/lib/format";
 import { BlockEditor } from "@/components/editor";
 import { getPeertubeHosts } from "@/components/editor/peertube";
+import { EmptyState, PageHeader } from "@/components/ui";
 import { buildPageTree, pageAncestors, readingOrder } from "@/app/courses/_lib/tree";
 import { PageTree } from "@/app/courses/_components/page-tree";
 import { Chevron } from "@/app/courses/_components/chevron";
@@ -47,54 +48,42 @@ export default async function SharedCoursePageView({ params }: PageProps<"/p/cou
   const next = index >= 0 && index < order.length - 1 ? order[index + 1] : undefined;
 
   return (
-    <div className="flex flex-col gap-6">
-      <nav aria-label="Fil d'Ariane" className="text-sm">
-        <ol className="flex flex-wrap items-center gap-x-1 gap-y-0">
-          <li className="flex items-center">
-            <Link href={base} className="inline-flex min-h-11 items-center underline break-words">
-              {course.title}
-            </Link>
-          </li>
-          {ancestors.map((a) => (
-            <li key={a.id} className="flex min-w-0 items-center gap-1">
-              <span aria-hidden="true" className="text-muted">
-                /
-              </span>
-              <Link href={`${base}/${a.id}`} className="inline-flex min-h-11 min-w-0 items-center underline break-words">
-                {a.title}
-              </Link>
-            </li>
-          ))}
-        </ol>
-      </nav>
+    <div className="flex flex-col gap-8">
+      <PageHeader
+        breadcrumbs={[
+          { label: course.title, href: base },
+          ...ancestors.map((a) => ({ label: a.title, href: `${base}/${a.id}` })),
+          { label: page.title },
+        ]}
+        title={page.title}
+        meta={
+          <span>
+            Mis à jour le <time dateTime={page.updatedAt.toISOString()}>{formatDate(page.updatedAt)}</time>
+          </span>
+        }
+      />
 
-      <details className="group card md:hidden">
-        <summary className="flex min-h-11 cursor-pointer items-center gap-2 font-semibold list-none [&::-webkit-details-marker]:hidden">
+      <details className="group border border-line md:hidden">
+        <summary className="flex min-h-11 cursor-pointer items-center gap-2 px-4 font-semibold list-none [&::-webkit-details-marker]:hidden">
           <Chevron />
-          Sommaire du cours
+          Sommaire
         </summary>
-        <nav aria-label="Sommaire du cours" className="pt-2">
+        <nav aria-label="Sommaire du cours" className="border-t border-line p-2">
           <PageTree nodes={tree} slug="" basePath={base} currentId={page.id} />
         </nav>
       </details>
 
-      <div className="grid gap-6 md:grid-cols-[15rem_minmax(0,1fr)]">
+      <div className="grid gap-8 md:grid-cols-[15rem_minmax(0,1fr)]">
         <aside className="hidden min-w-0 md:block">
-          <nav aria-label="Sommaire du cours" className="card md:sticky md:top-4">
-            <h2 className="mb-2 text-sm font-semibold text-muted">Sommaire</h2>
+          <nav aria-labelledby="sommaire-titre" className="md:sticky md:top-4">
+            <h2 id="sommaire-titre" className="mb-2 px-2 text-sm font-semibold text-muted">
+              Sommaire
+            </h2>
             <PageTree nodes={tree} slug="" basePath={base} currentId={page.id} />
           </nav>
         </aside>
 
-        <article className="flex min-w-0 max-w-[70ch] flex-col gap-4">
-          <header className="flex flex-col gap-1">
-            <p className="eyebrow">Lecture seule</p>
-            <h1 className="text-2xl font-semibold text-balance break-words">{page.title}</h1>
-            <p className="text-sm text-muted">
-              Mis à jour le <time dateTime={page.updatedAt.toISOString()}>{formatDate(page.updatedAt)}</time>
-            </p>
-          </header>
-
+        <div className="flex min-w-0 max-w-[70ch] flex-col gap-6">
           {page.content || page.markdown ? (
             <BlockEditor
               key={page.id}
@@ -104,7 +93,7 @@ export default async function SharedCoursePageView({ params }: PageProps<"/p/cou
               peertubeHosts={getPeertubeHosts()}
             />
           ) : (
-            <p className="text-muted">Cette page est encore vide.</p>
+            <EmptyState>Page vide.</EmptyState>
           )}
 
           {(prev || next) && (
@@ -131,7 +120,7 @@ export default async function SharedCoursePageView({ params }: PageProps<"/p/cou
               )}
             </nav>
           )}
-        </article>
+        </div>
       </div>
     </div>
   );

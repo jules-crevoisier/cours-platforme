@@ -1,11 +1,7 @@
-// Synthèse de la contribution entre pairs pour l'équipe pédagogique : membre × moyenne reçue.
+// Évaluation entre pairs, vue de l'équipe pédagogique : moyenne de contribution reçue par membre.
 import { contributionLabel } from "@/lib/assessment";
-import {
-  averageLevel,
-  formatAverage,
-  formatDateTime,
-  PEER_LOW_THRESHOLD,
-} from "@/app/assessments/_lib/shared";
+import { EmptyState, StatusBadge } from "@/components/ui";
+import { averageLevel, formatAverage, formatDateTime, PEER_LOW_THRESHOLD } from "@/app/assessments/_lib/shared";
 
 type Member = { userId: string; name: string };
 type Review = {
@@ -21,7 +17,6 @@ type Props = {
   reviews: Review[];
   /** Détail « qui a noté qui » (canSeePeerReviews) */
   canSeeDetails: boolean;
-  closesAt: Date | null;
 };
 
 function analyseGroup(members: Member[], reviews: Review[]) {
@@ -40,103 +35,73 @@ function analyseGroup(members: Member[], reviews: Review[]) {
   return { valid, expected, rows, flagged: rows.some((r) => r.reasons.length > 0) };
 }
 
-export function PeerReviewOverview({ groups, reviews, canSeeDetails, closesAt }: Props) {
+export function PeerReviewOverview({ groups, reviews, canSeeDetails }: Props) {
   const nameById = new Map(groups.flatMap((g) => g.members.map((m) => [m.userId, m.name] as const)));
   const analysed = groups.map((g) => ({ group: g, ...analyseGroup(g.members, reviews) }));
-  const flaggedCount = analysed.filter((a) => a.group.members.length > 1 && a.flagged).length;
 
   return (
-    <section aria-labelledby="peer-overview-title" className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <h2 id="peer-overview-title" className="text-lg font-semibold">
-          Contribution entre pairs
-        </h2>
-        <p className="max-w-prose text-sm text-muted">
-          Moyenne des niveaux de contribution reçus (1 à 4). « À vérifier » : moyenne reçue ≤ 1,5 ou évaluation
-          manquante.{" "}
-          {closesAt ? `Saisie ouverte aux étudiant·e·s jusqu'au ${formatDateTime(closesAt)}.` : "Saisie ouverte sans limite (jalon sans échéance)."}
-        </p>
-        {groups.length > 0 && (
-          <p className="text-sm">
-            <strong>{flaggedCount}</strong> groupe{flaggedCount > 1 ? "s" : ""} à vérifier
-          </p>
-        )}
-      </div>
+    <section aria-labelledby="peer-overview-title" className="flex flex-col gap-6">
+      <h2 id="peer-overview-title" className="text-xl">
+        Évaluation entre pairs
+      </h2>
 
       {groups.length === 0 ? (
-        <p className="text-muted">Aucun groupe dans cette SAÉ pour l&apos;instant.</p>
+        <EmptyState>Aucun groupe.</EmptyState>
       ) : (
         analysed.map(({ group, rows, valid, expected, flagged }) => (
-          <div key={group.id} className="card flex flex-col gap-3">
-            <h3 className="flex flex-wrap items-center gap-2 font-semibold">
-              <span className="break-words">{group.name}</span>
+          <div key={group.id} className="flex flex-col gap-2">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+              <h3 className="text-base break-words">{group.name}</h3>
               {group.members.length > 1 &&
                 (flagged ? (
-                  <span className="badge badge-warn">À vérifier</span>
+                  <StatusBadge tone="warn">À vérifier</StatusBadge>
                 ) : (
-                  <span className="badge badge-ok">Complet</span>
+                  <StatusBadge tone="ok">Complet</StatusBadge>
                 ))}
-            </h3>
+            </div>
 
             {group.members.length < 2 ? (
-              <p className="text-sm text-muted">Moins de deux membres : pas d&apos;évaluation entre pairs.</p>
+              <p className="text-sm text-muted">Moins de deux membres.</p>
             ) : (
               <>
-                {/* Mobile : cartes */}
-                <ul className="flex flex-col gap-2 md:hidden">
-                  {rows.map((row) => (
-                    <li key={row.userId} className="rounded-md border border-line p-3">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="font-medium break-words">{row.name}</span>
-                        {row.reasons.length > 0 && <span className="badge badge-warn">À vérifier</span>}
-                      </div>
-                      <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
-                        <dt className="text-muted">Moyenne reçue</dt>
-                        <dd>{formatAverage(row.avg)}</dd>
-                        <dt className="text-muted">Évaluations reçues</dt>
-                        <dd>
-                          {row.received}/{expected}
-                        </dd>
-                        <dt className="text-muted">Évaluations données</dt>
-                        <dd>
-                          {row.given}/{expected}
-                        </dd>
-                      </dl>
-                      {row.reasons.length > 0 && <p className="mt-2 text-sm text-warn">{row.reasons.join(" · ")}</p>}
-                    </li>
-                  ))}
-                </ul>
-
-                {/* Tablette et plus : tableau */}
-                <div className="hidden overflow-x-auto md:block">
-                  <table className="w-full border-collapse text-left text-sm">
-                    <caption className="sr-only">Contribution entre pairs — {group.name}</caption>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[32rem] border-collapse text-left text-sm">
+                    <caption className="sr-only">Évaluation entre pairs — {group.name}</caption>
                     <thead>
                       <tr className="border-b border-line text-muted">
-                        <th scope="col" className="py-2 pr-3 font-medium">Membre</th>
-                        <th scope="col" className="py-2 pr-3 font-medium">Moyenne reçue</th>
-                        <th scope="col" className="py-2 pr-3 font-medium">Reçues</th>
-                        <th scope="col" className="py-2 pr-3 font-medium">Données</th>
-                        <th scope="col" className="py-2 font-medium">Vigilance</th>
+                        <th scope="col" className="py-2 pr-4 font-semibold">
+                          Membre
+                        </th>
+                        <th scope="col" className="py-2 pr-4 font-semibold">
+                          Moyenne reçue
+                        </th>
+                        <th scope="col" className="py-2 pr-4 font-semibold">
+                          Reçues
+                        </th>
+                        <th scope="col" className="py-2 pr-4 font-semibold">
+                          Données
+                        </th>
+                        <th scope="col" className="py-2 font-semibold">
+                          Vigilance
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {rows.map((row) => (
                         <tr key={row.userId} className="border-b border-line align-top">
-                          <th scope="row" className="py-2 pr-3 font-medium break-words">{row.name}</th>
-                          <td className="py-2 pr-3 font-mono tabular-nums">{formatAverage(row.avg)}</td>
-                          <td className="py-2 pr-3 font-mono tabular-nums">
-                            {row.received}/{expected}
+                          <th scope="row" className="py-2 pr-4 font-semibold break-words">
+                            {row.name}
+                          </th>
+                          <td className="py-2 pr-4 whitespace-nowrap">{formatAverage(row.avg)}</td>
+                          <td className="py-2 pr-4 whitespace-nowrap">
+                            {row.received} sur {expected}
                           </td>
-                          <td className="py-2 pr-3 font-mono tabular-nums">
-                            {row.given}/{expected}
+                          <td className="py-2 pr-4 whitespace-nowrap">
+                            {row.given} sur {expected}
                           </td>
                           <td className="py-2">
                             {row.reasons.length > 0 ? (
-                              <span className="flex flex-col items-start gap-1">
-                                <span className="badge badge-warn">À vérifier</span>
-                                <span className="text-warn">{row.reasons.join(" · ")}</span>
-                              </span>
+                              <span className="text-warn">{row.reasons.join(", ")}</span>
                             ) : (
                               <span className="text-muted">—</span>
                             )}
@@ -148,25 +113,27 @@ export function PeerReviewOverview({ groups, reviews, canSeeDetails, closesAt }:
                 </div>
 
                 {canSeeDetails && (
-                  <details className="rounded-md border border-line">
-                    <summary className="flex min-h-11 cursor-pointer items-center px-3 text-sm font-medium">
-                      Détail : qui a évalué qui ({valid.length})
+                  <details>
+                    <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm font-semibold pointer-fine:min-h-10">
+                      Détail des évaluations
                     </summary>
                     {valid.length === 0 ? (
-                      <p className="border-t border-line p-3 text-sm text-muted">Aucune évaluation enregistrée.</p>
+                      <p className="text-sm text-muted">Aucune évaluation.</p>
                     ) : (
-                      <ul className="flex flex-col divide-y divide-line border-t border-line">
+                      <ul className="flex flex-col divide-y divide-line">
                         {valid.map((r) => (
-                          <li key={`${r.reviewerId}-${r.revieweeId}`} className="flex flex-col gap-1 p-3 text-sm">
+                          <li key={`${r.reviewerId}-${r.revieweeId}`} className="flex flex-col gap-1 py-3 text-sm">
                             <span>
-                              <span className="font-medium">{nameById.get(r.reviewerId) ?? "—"}</span>
+                              <span className="font-semibold">{nameById.get(r.reviewerId) ?? "—"}</span>
                               <span aria-hidden="true"> → </span>
                               <span className="sr-only"> a évalué </span>
-                              <span className="font-medium">{nameById.get(r.revieweeId) ?? "—"}</span> :{" "}
+                              <span className="font-semibold">{nameById.get(r.revieweeId) ?? "—"}</span> :{" "}
                               {r.contribution}/4 — {contributionLabel(r.contribution)}
                             </span>
                             {r.comment && <span className="break-words whitespace-pre-line text-muted">{r.comment}</span>}
-                            <span className="text-xs text-muted">modifié le {formatDateTime(r.updatedAt)}</span>
+                            <time dateTime={r.updatedAt.toISOString()} className="text-xs text-muted">
+                              {formatDateTime(r.updatedAt)}
+                            </time>
                           </li>
                         ))}
                       </ul>

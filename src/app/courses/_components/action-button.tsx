@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { cx } from "@/components/ui/cx";
 import type { FormAction } from "../_lib/action-state";
 
 type Props = {
@@ -12,7 +13,10 @@ type Props = {
   /** Libellé accessible si le texte visible est ambigu (ex. « ↑ ») */
   ariaLabel?: string;
   variant?: "default" | "primary" | "danger" | "ghost";
+  /** Classes du formulaire englobant */
   className?: string;
+  /** Classes ajoutées au bouton (ex. pleine largeur dans un menu) */
+  buttonClassName?: string;
 };
 
 const VARIANT: Record<NonNullable<Props["variant"]>, string> = {
@@ -23,7 +27,16 @@ const VARIANT: Record<NonNullable<Props["variant"]>, string> = {
 };
 
 /** Bouton isolé qui déclenche une Server Action et affiche son erreur éventuelle */
-export function ActionButton({ action, label, pendingLabel, confirmMessage, ariaLabel, variant = "default", className }: Props) {
+export function ActionButton({
+  action,
+  label,
+  pendingLabel,
+  confirmMessage,
+  ariaLabel,
+  variant = "default",
+  className,
+  buttonClassName,
+}: Props) {
   const [state, formAction, pending] = useActionState(action, null);
 
   return (
@@ -34,7 +47,7 @@ export function ActionButton({ action, label, pendingLabel, confirmMessage, aria
         if (confirmMessage && !window.confirm(confirmMessage)) e.preventDefault();
       }}
     >
-      <button type="submit" className={VARIANT[variant]} disabled={pending} aria-label={ariaLabel}>
+      <button type="submit" className={cx(VARIANT[variant], buttonClassName)} disabled={pending} aria-label={ariaLabel}>
         {pending ? (pendingLabel ?? label) : label}
       </button>
       {state && !state.ok && (

@@ -99,7 +99,7 @@ function listPreview(items: string[], max = 15) {
 const plural = (n: number, singular: string, pluralForm = `${singular}s`) => `${n} ${n > 1 ? pluralForm : singular}`;
 
 // ─────────────────────────────────────────────────────────────
-// SAÉ : création (éventuellement depuis un modèle national), réglages, publication, sujet, suppression
+// SAÉ : création (éventuellement depuis un modèle national), infos, publication, sujet, suppression
 // ─────────────────────────────────────────────────────────────
 
 const OFFICIAL_AC_LABELS = new Map(MMI_CRITICAL_LEARNINGS.map((l) => [l.code, l.label]));
@@ -214,7 +214,7 @@ export async function updateSaeSettings(_prev: FormState, formData: FormData): P
   }
 
   revalidateSae(sae.id);
-  return { ok: true, message: "Réglages enregistrés." };
+  return { ok: true, message: "Modifications enregistrées." };
 }
 
 export async function setSaePublished(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -1087,7 +1087,7 @@ export async function autoCreateGroups(_prev: FormState, formData: FormData): Pr
   if (!sae) return NOT_FOUND_SAE;
   if (!canManageSae(user, sae)) return FORBIDDEN;
   const cohortId = sae.cohortId;
-  if (!cohortId) return { ok: false, error: "Liez d'abord une promo à la SAÉ (section Réglages)." };
+  if (!cohortId) return { ok: false, error: "Liez d'abord une promo à la SAÉ (onglet Infos)." };
 
   let result: { groups: number; students: number };
   try {

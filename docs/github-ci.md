@@ -7,8 +7,10 @@
 | `main` | `docker-compose.registry.yml` | `:main` | `migrator` (sans démo) |
 | `test` | `docker-compose.registry.test.yml` | `:test` | `seeder` (avec démo) |
 
+**Prod = `main`** (https://cours.srko.fr). `test` ne sert plus qu'à la recette avec données de démo : on y développe, puis on fusionne `test` dans `main` par PR pour livrer. Ne jamais mettre `docker-compose.yml` (qui compile sur le serveur) dans Dokploy.
+
 ## Côté Dokploy (une seule fois)
 - Changer le *Compose path* de chaque application vers le fichier ci-dessus.
 - Le serveur doit pouvoir lire ghcr.io : soit rendre les packages publics (GitHub → Packages → réglages), soit `docker login ghcr.io` avec un PAT `read:packages`.
 
-Optionnel : secrets `DOKPLOY_WEBHOOK_MAIN` / `DOKPLOY_WEBHOOK_TEST` pour redéployer automatiquement ; variable `PEERTUBE_HOSTS` si utilisée.
+Redéploiement automatique (optionnel) : secrets `DOKPLOY_URL`, `DOKPLOY_API_KEY` et `DOKPLOY_COMPOSE_ID_MAIN` / `DOKPLOY_COMPOSE_ID_TEST` (API Dokploy, recommandé), ou à défaut `DOKPLOY_WEBHOOK_MAIN` / `DOKPLOY_WEBHOOK_TEST`. Couper alors l'*Autodeploy* Dokploy pour ne pas déployer deux fois ; variable `PEERTUBE_HOSTS` si utilisée.

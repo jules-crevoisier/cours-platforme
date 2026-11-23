@@ -57,7 +57,7 @@ function EmbedUrlInput({ initialUrl, peertubeHosts, onSubmit, onCancel }: UrlInp
   }
 
   return (
-    <div contentEditable={false} className="flex w-full flex-col gap-2 rounded-md border border-dashed border-line bg-sunken p-3">
+    <div contentEditable={false} className="flex w-full flex-col gap-2 border border-dashed border-line bg-sunken p-3">
       <label htmlFor={`${id}-url`} className="label">
         Adresse du contenu à intégrer
       </label>
@@ -117,7 +117,7 @@ function EmbedView({ url, editable, peertubeHosts, onChangeUrl }: ViewProps) {
     const link = safeHttpUrl(url);
     return (
       <figure contentEditable={false} className="flex w-full flex-col gap-1">
-        <div className={`relative w-full overflow-hidden rounded-md border border-line bg-sunken ${ASPECT_CLASS[embed.aspect]}`}>
+        <div className={`relative w-full overflow-hidden border border-line bg-sunken ${ASPECT_CLASS[embed.aspect]}`}>
           <iframe
             src={embed.src}
             title={embed.title}
@@ -130,15 +130,12 @@ function EmbedView({ url, editable, peertubeHosts, onChangeUrl }: ViewProps) {
           />
         </div>
         <figcaption className="flex flex-wrap items-center justify-between gap-x-3 text-sm text-muted">
-          <span>
-            {EMBED_LABELS[embed.provider]}
+          <span className="flex flex-wrap items-center gap-x-4">
+            <span>{EMBED_LABELS[embed.provider]}</span>
             {link && (
-              <>
-                {" · "}
-                <a href={link} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex min-h-11 items-center underline">
-                  Ouvrir dans un nouvel onglet
-                </a>
-              </>
+              <a href={link} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex min-h-11 items-center underline">
+                Ouvrir dans un nouvel onglet
+              </a>
             )}
           </span>
           {editable && (

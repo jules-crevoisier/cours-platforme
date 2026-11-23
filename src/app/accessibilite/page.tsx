@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { ReadingLayout, ReadingSection } from "@/components/app-shell/reading-layout";
-import { PageHeader } from "@/components/ui";
+import { PageHeader, StatusBadge } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Déclaration d'accessibilité" };
 
@@ -25,7 +25,7 @@ const TOC = [
 /** Champ à renseigner par l'établissement — visible et explicite, jamais une fausse valeur */
 function ToFill({ children }: { children: ReactNode }) {
   return (
-    <span className="rounded-sm bg-warn-soft px-1.5 py-0.5 font-mono text-sm text-warn">
+    <span className="bg-warn-soft px-1.5 py-0.5 text-warn">
       <span className="font-semibold">À compléter :</span> {children}
     </span>
   );
@@ -39,24 +39,20 @@ export default function AccessibilityPage() {
   return (
     <div className="flex flex-col gap-10">
       <PageHeader
-        eyebrow="RGAA 4.1 · WCAG 2.1 AA"
         title="Déclaration d'accessibilité"
-        lead="Ce que la plateforme garantit aujourd'hui, ce qui reste à vérifier, et comment obtenir de l'aide si un contenu vous est inaccessible."
         meta={
           <>
+            <span>RGAA 4.1</span>
+            <span>WCAG 2.1 AA</span>
             <span>Établie le {DECLARATION_DATE}</span>
             <span>Statut : non conforme (audit à réaliser)</span>
           </>
         }
       />
 
-      <div role="note" className="flex max-w-prose flex-col gap-1 rounded-lg border border-warn/30 bg-warn-soft p-4 text-warn">
-        <p className="font-semibold">Déclaration provisoire</p>
-        <p>
-          Les champs marqués « À compléter » (établissement, contact du référent accessibilité, audit) doivent être
-          renseignés par l&apos;IUT avant la mise en service.
-        </p>
-      </div>
+      <p role="note">
+        <StatusBadge tone="warn">Déclaration provisoire</StatusBadge>
+      </p>
 
       <ReadingLayout toc={TOC}>
         <ReadingSection id="engagement" title="Engagement">
@@ -94,7 +90,7 @@ export default function AccessibilityPage() {
         </ReadingSection>
 
         <ReadingSection id="contenus" title="Contenus non accessibles">
-          <h3 className="text-lg font-semibold">Non-conformités</h3>
+          <h3 className="text-lg">Non-conformités</h3>
           <p>
             <ToFill>liste issue de l&apos;audit</ToFill>
           </p>
@@ -109,9 +105,9 @@ export default function AccessibilityPage() {
               de ces services.
             </li>
           </Bullets>
-          <h3 className="text-lg font-semibold">Dérogations pour charge disproportionnée</h3>
+          <h3 className="text-lg">Dérogations pour charge disproportionnée</h3>
           <p>Aucune.</p>
-          <h3 className="text-lg font-semibold">Contenus non soumis à l&apos;obligation d&apos;accessibilité</h3>
+          <h3 className="text-lg">Contenus non soumis à l&apos;obligation d&apos;accessibilité</h3>
           <p>
             Les travaux déposés par les étudiants sous forme de liens externes (Google Drive, Figma, GitHub…) : ils
             ne sont ni développés ni contrôlés par l&apos;établissement.

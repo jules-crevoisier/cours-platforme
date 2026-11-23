@@ -4,6 +4,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { canCreateCourse, canEditCourse, isAdmin, isStaff } from "@/lib/permissions";
+import { EmptyState, PageHeader, StatusBadge, Swatch } from "@/components/ui";
 import { publishCourses } from "./bulk-actions";
 import { parsePage } from "./_lib/pagination";
 
@@ -58,15 +59,17 @@ export default async function CoursesPage({ searchParams }: PageProps<"/courses"
   const selectable = courses.filter((c) => !c.published && canEditCourse(user, c));
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Cours</h1>
-        {canCreateCourse(user) && (
-          <Link href="/courses/new" className="btn btn-primary">
-            Nouveau cours
-          </Link>
-        )}
-      </div>
+    <div className="flex flex-col gap-10">
+      <PageHeader
+        title="Cours"
+        actions={
+          canCreateCourse(user) && (
+            <Link href="/courses/new" className="btn btn-primary">
+              Nouveau cours
+            </Link>
+          )
+        }
+      />
 
       {Number.isFinite(justPublished) && (
         <p role="status" className="card">
@@ -108,16 +111,7 @@ export default async function CoursesPage({ searchParams }: PageProps<"/courses"
       </div>
 
       {courses.length === 0 ? (
-        <div className="card text-muted">
-          <p>{q || onlyDrafts ? "Aucun cours ne correspond." : "Aucun cours disponible pour l'instant."}</p>
-          {canCreateCourse(user) && !q && !onlyDrafts && (
-            <p className="mt-2">
-              <Link href="/courses/new" className="underline">
-                Créer votre premier cours
-              </Link>
-            </p>
-          )}
-        </div>
+        <EmptyState>{q || onlyDrafts ? "Aucun cours ne correspond." : "Aucun cours."}</EmptyState>
       ) : (
         <form action={publishCourses} className="flex flex-col gap-4">
           {selectable.length > 0 && (
@@ -133,20 +127,24 @@ export default async function CoursesPage({ searchParams }: PageProps<"/courses"
           )}
           <ul className="grid gap-3 md:grid-cols-2">
             {courses.map((course) => (
-              <li key={course.id} className="card flex min-w-0 flex-col gap-2">
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <h2 className="min-w-0 text-lg font-semibold break-words">
-                    <Link href={`/courses/${course.slug}`} className="hover:underline">
-                      {course.title}
-                    </Link>
-                  </h2>
-                  {!course.published && <span className="badge">Brouillon</span>}
-                </div>
-                {course.summary && <p className="line-clamp-3 text-muted break-words">{course.summary}</p>}
-                <p className="mt-auto text-sm text-muted">
-                  {course._count.pages} page{course._count.pages > 1 ? "s" : ""} · {course.owner.name}
-                  {canEditCourse(user, course) ? " · vous pouvez modifier" : ""}
-                </p>
+              <li key={course.id} className="flex flex-col gap-2">
+                <Link
+                  href={`/courses/${course.slug}`}
+                  className="card flex h-full min-h-11 items-start gap-4 transition-colors hover:border-ink"
+                >
+                  <Swatch seed={course.id} text={course.title} />
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <h2 className="text-lg break-words">{course.title}</h2>
+                    {course.summary && <p className="line-clamp-2 text-muted break-words">{course.summary}</p>}
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">
+                      <span>
+                        {course._count.pages} page{course._count.pages > 1 ? "s" : ""}
+                      </span>
+                      <span>{course.owner.name}</span>
+                      {!course.published && <StatusBadge tone="warn">Brouillon</StatusBadge>}
+                    </div>
+                  </div>
+                </Link>
                 {!course.published && canEditCourse(user, course) && (
                   <label className="flex min-h-11 items-center gap-2 text-sm">
                     <input type="checkbox" name="ids" value={course.id} className="size-5" />
@@ -168,7 +166,7 @@ export default async function CoursesPage({ searchParams }: PageProps<"/courses"
           ) : (
             <span />
           )}
-          <span className="font-mono text-sm text-muted">
+          <span className="text-sm text-muted">
             Page {page} / {lastPage} · {total} cours
           </span>
           {page < lastPage && (

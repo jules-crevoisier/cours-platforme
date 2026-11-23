@@ -7,25 +7,20 @@ export const metadata: Metadata = { title: "Accès refusé" };
 export default function Forbidden() {
   return (
     <StatusView
-      code="Erreur 403"
+      code="403"
       title="Accès refusé"
       actions={
         <>
           <Link href="/" className="btn btn-primary">
-            Retour à l&apos;accueil
+            Accueil
           </Link>
           <Link href="/aide" className="btn">
-            Consulter l&apos;aide
+            Aide
           </Link>
         </>
       }
     >
       <p>Votre compte n&apos;a pas les droits nécessaires pour cette page.</p>
-      <p>
-        Un cours ou une SAÉ non publiés ne sont visibles que par leur équipe pédagogique ; une auto-évaluation en
-        brouillon, seulement par son auteur. Si vous pensez que c&apos;est une erreur, contactez l&apos;enseignant
-        responsable.
-      </p>
     </StatusView>
   );
 }

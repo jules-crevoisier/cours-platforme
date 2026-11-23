@@ -32,7 +32,7 @@ export function SnippetForm({ action, initial, submitLabel, resetOnSuccess = fal
     <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-3">
       <div>
         <label htmlFor={`${uid}-tag`} className="label">
-          Étiquette <span className="font-normal text-muted">(optionnelle : code AC, thème…)</span>
+          Étiquette <span className="font-normal text-muted">(facultatif)</span>
         </label>
         <input
           id={`${uid}-tag`}
@@ -43,7 +43,7 @@ export function SnippetForm({ action, initial, submitLabel, resetOnSuccess = fal
           list={tagListId}
           autoComplete="off"
           placeholder="ex. AC14.02, accessibilité"
-          className="input font-mono"
+          className="input"
         />
       </div>
       <div>

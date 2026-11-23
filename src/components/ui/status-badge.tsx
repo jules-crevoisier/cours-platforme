@@ -2,9 +2,9 @@ import type { ReactNode } from "react";
 import { cx } from "./cx";
 
 /**
- * StatusBadge — pilule mono 12 px : fond teinté + texte foncé + libellé.
+ * StatusBadge — libellé court précédé d'un carré de couleur (classe `.badge`).
  * La couleur n'est jamais seule porteuse du sens (le libellé est obligatoire).
- * L'accent n'est pas un statut : `accent` sert uniquement à « actif / sélectionné / nouveau ».
+ * Un seul badge par ligne : s'il en faut deux, l'information est mal placée.
  *
  *   <StatusBadge tone="ok">Soumise</StatusBadge>
  *   <AssessmentStatusBadge status={assessment?.status ?? "NONE"} />
@@ -19,15 +19,10 @@ const TONE_CLASS: Record<StatusTone, string> = {
   danger: "badge-danger",
 };
 
-type StatusBadgeProps = { tone?: StatusTone; children: ReactNode; className?: string; dot?: boolean };
+type StatusBadgeProps = { tone?: StatusTone; children: ReactNode; className?: string };
 
-export function StatusBadge({ tone = "neutral", children, className, dot = false }: StatusBadgeProps) {
-  return (
-    <span className={cx("badge", TONE_CLASS[tone], className)}>
-      {dot && <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-current" />}
-      {children}
-    </span>
-  );
+export function StatusBadge({ tone = "neutral", children, className }: StatusBadgeProps) {
+  return <span className={cx("badge", TONE_CLASS[tone], className)}>{children}</span>;
 }
 
 export type AssessmentStatusValue = "NONE" | "DRAFT" | "SUBMITTED";
@@ -42,7 +37,7 @@ export const ASSESSMENT_STATUS: Record<AssessmentStatusValue, { tone: StatusTone
 export function AssessmentStatusBadge({ status, className }: { status: AssessmentStatusValue; className?: string }) {
   const s = ASSESSMENT_STATUS[status];
   return (
-    <StatusBadge tone={s.tone} dot className={className}>
+    <StatusBadge tone={s.tone} className={className}>
       <span className="sr-only">Auto-évaluation : </span>
       {s.label}
     </StatusBadge>

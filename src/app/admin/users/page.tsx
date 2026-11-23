@@ -5,11 +5,10 @@ import { db } from "@/lib/db";
 import { assertAllowed, requireUser } from "@/lib/session";
 import { ROLE_LABELS, isAdmin, type Role } from "@/lib/permissions";
 import { formatDate } from "@/lib/format";
-import { PageHeader } from "@/components/ui";
+import { EmptyState, PageHeader } from "@/components/ui";
 import { addUsersToCohort, changeRole } from "./actions";
 import { RoleForm } from "./role-form";
 import { ActionForm, SubmitButton } from "./_components/action-form";
-import { AdminNav } from "./_components/admin-nav";
 import { SelectAll } from "./_components/select-all";
 import { USERS_PAGE_SIZE, pageCount, parseUserFilters, usersHref } from "./_lib/filters";
 
@@ -59,30 +58,33 @@ export default async function AdminUsersPage({ searchParams }: PageProps<"/admin
 
   const pages = pageCount(total);
   const filtered = !!(filters.q || filters.role || filters.cohort);
-  const selectedCohort = cohorts.find((c) => c.id === filters.cohort);
   // Sélection groupée seulement s'il existe au moins une promo cible
   const bulk = cohorts.length > 0;
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3">
-        <AdminNav user={user} current="users" />
-        <PageHeader eyebrow="Administration" title="Utilisateurs" lead="Rôles des comptes et rattachement aux promos." />
-      </div>
+      <PageHeader
+        title="Utilisateurs"
+        meta={
+          <span>
+            {total} utilisateur{total > 1 ? "s" : ""}
+          </span>
+        }
+      />
 
-      <form method="get" role="search" aria-label="Filtrer les utilisateurs" className="card flex flex-col gap-3 md:flex-row md:flex-wrap md:items-end">
-        <div className="min-w-0 md:flex-1">
+      <form method="get" role="search" aria-label="Filtrer les utilisateurs" className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+        <div className="min-w-0 sm:flex-1 sm:basis-56">
           <label htmlFor="user-search" className="label">
             Nom ou e-mail
           </label>
           <input id="user-search" name="q" type="search" defaultValue={filters.q} maxLength={100} className="input" />
         </div>
-        <div className="md:w-44">
+        <div className="sm:w-40">
           <label htmlFor="user-role" className="label">
             Rôle
           </label>
           <select id="user-role" name="role" defaultValue={filters.role ?? ""} className="input">
-            <option value="">Tous les rôles</option>
+            <option value="">Tous</option>
             {ROLES.map((r) => (
               <option key={r.value} value={r.value}>
                 {r.label}
@@ -90,16 +92,16 @@ export default async function AdminUsersPage({ searchParams }: PageProps<"/admin
             ))}
           </select>
         </div>
-        <div className="md:w-60">
+        <div className="sm:w-56">
           <label htmlFor="user-cohort" className="label">
             Promo
           </label>
           <select id="user-cohort" name="cohort" defaultValue={filters.cohort ?? ""} className="input">
-            <option value="">Toutes les promos</option>
+            <option value="">Toutes</option>
             <option value="none">Sans promo</option>
             {cohorts.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name} · {c.academicYear}
+                {c.name} ({c.academicYear})
               </option>
             ))}
           </select>
@@ -109,81 +111,60 @@ export default async function AdminUsersPage({ searchParams }: PageProps<"/admin
             Filtrer
           </button>
           {filtered && (
-            <Link href="/admin/users" className="btn">
-              Réinitialiser
+            <Link href="/admin/users" className="btn btn-ghost">
+              Effacer
             </Link>
           )}
         </div>
       </form>
 
-      <p className="text-sm text-muted" aria-live="polite">
-        {total} utilisateur{total > 1 ? "s" : ""}
-        {filters.q ? ` pour « ${filters.q} »` : ""}
-        {filters.role ? ` · ${ROLE_LABELS[filters.role]}` : ""}
-        {filters.cohort === "none" ? " · sans promo" : selectedCohort ? ` · ${selectedCohort.name}` : ""}
-        {pages > 1 ? ` · page ${Math.min(filters.page, pages)} sur ${pages}` : ""}
-      </p>
-
-      {users.length > 0 && (
-        <section aria-labelledby="bulk-title" className="card flex flex-col gap-3">
-          <h2 id="bulk-title" className="text-base font-semibold">
-            Ajouter à une promo
-          </h2>
-          {cohorts.length === 0 ? (
-            <p className="text-sm text-muted">
-              Aucune promo pour l&apos;instant.{" "}
-              <Link href="/admin/cohorts" className="inline-flex min-h-11 items-center text-accent underline">
-                Créer une promo
-              </Link>
-            </p>
-          ) : (
-            <>
-              <p className="text-sm text-muted">Cochez des utilisateurs dans la liste, choisissez la promo puis validez.</p>
-              <ActionForm id={BULK_FORM_ID} action={addUsersToCohort} resetOnSuccess className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
-                <div className="min-w-0 sm:flex-1">
-                  <label htmlFor="bulk-cohort-id" className="label">
-                    Promo
-                  </label>
-                  <select id="bulk-cohort-id" name="cohortId" required defaultValue="" className="input">
-                    <option value="" disabled>
-                      Choisir une promo…
+      {bulk && users.length > 0 && (
+        <details>
+          <summary className="btn cursor-pointer list-none [&::-webkit-details-marker]:hidden">Ajouter en masse</summary>
+          <div className="mt-3 flex flex-col gap-2">
+            <ActionForm id={BULK_FORM_ID} action={addUsersToCohort} resetOnSuccess className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
+              <div className="min-w-0 sm:w-72">
+                <label htmlFor="bulk-cohort-id" className="label">
+                  Promo
+                </label>
+                <select id="bulk-cohort-id" name="cohortId" required defaultValue="" className="input">
+                  <option value="" disabled>
+                    Choisir une promo…
+                  </option>
+                  {cohorts.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} ({c.academicYear})
                     </option>
-                    {cohorts.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name} · {c.academicYear}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <SubmitButton pendingLabel="Ajout…">Ajouter la sélection</SubmitButton>
-              </ActionForm>
-              <SelectAll formId={BULK_FORM_ID} name="userIds" />
-            </>
-          )}
-        </section>
+                  ))}
+                </select>
+              </div>
+              <SubmitButton pendingLabel="Ajout…">Ajouter la sélection</SubmitButton>
+            </ActionForm>
+            <SelectAll formId={BULK_FORM_ID} name="userIds" />
+          </div>
+        </details>
       )}
 
       {users.length === 0 ? (
-        <div className="card flex flex-col items-start gap-2">
-          <p className="text-muted">
-            {filters.page > 1 && total > 0
-              ? "Cette page n'existe pas."
-              : filtered
-                ? "Aucun utilisateur ne correspond à ces filtres."
-                : "Aucun utilisateur pour l'instant."}
-          </p>
-          {(filtered || filters.page > 1) && (
-            <Link href="/admin/users" className="btn">
-              Voir tous les utilisateurs
-            </Link>
-          )}
-        </div>
+        filters.page > 1 && total > 0 ? (
+          <EmptyState
+            action={
+              <Link href={usersHref({ ...filters, page: 1 })} className="btn">
+                Première page
+              </Link>
+            }
+          >
+            Cette page n&apos;existe pas.
+          </EmptyState>
+        ) : (
+          <EmptyState>{filtered ? "Aucun résultat." : "Aucun utilisateur."}</EmptyState>
+        )
       ) : (
-        <ul className="flex flex-col gap-3 md:gap-0 md:divide-y md:divide-line md:rounded-md md:border md:border-line md:bg-surface">
+        <ul className="divide-y divide-line border-y border-line">
           {users.map((u) => (
             <li
               key={u.id}
-              className={`card flex flex-col gap-3 md:grid md:items-center md:gap-4 md:rounded-none md:border-0 ${
+              className={`flex flex-col gap-3 py-4 md:grid md:items-center md:gap-4 ${
                 bulk ? "md:grid-cols-[2.75rem_minmax(0,1fr)_8rem_15rem]" : "md:grid-cols-[minmax(0,1fr)_8rem_15rem]"
               }`}
             >
@@ -196,17 +177,17 @@ export default async function AdminUsersPage({ searchParams }: PageProps<"/admin
               <div className="flex min-w-0 flex-col gap-1">
                 <span className="font-medium break-words">
                   {u.name}
-                  {u.id === user.id && <span className="badge ml-2">vous</span>}
+                  {u.id === user.id && <span className="ml-2 text-sm font-normal text-muted">(vous)</span>}
                 </span>
                 <span className="text-sm break-all text-muted">
                   <span className="sr-only">E-mail : </span>
                   {u.email}
                 </span>
                 {u.cohorts.length > 0 && (
-                  <ul aria-label="Promos" className="flex flex-wrap gap-1">
+                  <ul aria-label="Promos" className="flex flex-wrap gap-x-4 text-sm text-muted">
                     {u.cohorts.map(({ cohort }) => (
-                      <li key={cohort.id} className="badge badge-accent">
-                        {cohort.name} · {cohort.academicYear}
+                      <li key={cohort.id}>
+                        {cohort.name} ({cohort.academicYear})
                       </li>
                     ))}
                   </ul>
@@ -226,17 +207,17 @@ export default async function AdminUsersPage({ searchParams }: PageProps<"/admin
         <nav aria-label="Pagination" className="flex flex-wrap items-center justify-between gap-2">
           {filters.page > 1 ? (
             <Link href={usersHref({ ...filters, page: Math.min(filters.page - 1, pages) })} className="btn" rel="prev">
-              ← Page précédente
+              Précédent
             </Link>
           ) : (
             <span />
           )}
-          <span className="font-mono text-sm text-muted">
-            {Math.min(filters.page, pages)} / {pages}
+          <span className="text-sm text-muted">
+            Page {Math.min(filters.page, pages)} sur {pages}
           </span>
           {filters.page < pages ? (
             <Link href={usersHref({ ...filters, page: filters.page + 1 })} className="btn" rel="next">
-              Page suivante →
+              Suivant
             </Link>
           ) : (
             <span />
