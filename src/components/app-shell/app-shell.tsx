@@ -53,7 +53,7 @@ export async function AppShell({ user, theme, children }: { user: CurrentUser; t
           >
             <Avatar name={user.name} />
             <span className="flex flex-col">
-              <span className="text-sm leading-tight font-semibold">{user.name}</span>
+              <span className="text-sm leading-tight font-semibold whitespace-nowrap">{user.name}</span>
               <span className="text-xs leading-tight text-muted">{ROLE_LABELS[user.role]}</span>
             </span>
             <Icon name="chevronRight" size={16} className="shrink-0 rotate-90 text-muted" />

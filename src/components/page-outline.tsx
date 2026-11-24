@@ -39,7 +39,7 @@ export function PageOutline() {
   }
 
   return (
-    <nav aria-labelledby="sur-cette-page" className="hidden 2xl:sticky 2xl:top-4 2xl:block 2xl:self-start">
+    <nav aria-labelledby="sur-cette-page" className="text-sm">
       <h2 id="sur-cette-page" className="px-3 text-sm font-semibold text-muted">
         Sur cette page
       </h2>
