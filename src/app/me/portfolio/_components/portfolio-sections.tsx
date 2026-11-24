@@ -47,7 +47,7 @@ export function PortfolioSections({
   return (
     <div className="flex flex-col gap-8">
       {competences.map((c) => (
-        <section key={c.id} aria-labelledby={`pf-${c.code}`} className="flex flex-col gap-2">
+        <section key={c.id} aria-labelledby={`pf-${c.code}`} className="flex flex-col gap-2 panel">
           <h3 id={`pf-${c.code}`} className="flex flex-wrap items-center gap-2 text-lg">
             <CompetenceDot color={c.color} />
             <span>{c.code}</span>

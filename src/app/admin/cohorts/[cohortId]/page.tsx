@@ -100,7 +100,7 @@ export default async function CohortPage({ params }: PageProps<"/admin/cohorts/[
         </section>
 
         <div className="flex flex-col gap-10">
-          <section aria-labelledby="add-title" className="flex flex-col gap-4">
+          <section aria-labelledby="add-title" className="flex flex-col gap-4 panel">
             <h2 id="add-title" className="text-xl">
               Ajouter des membres
             </h2>

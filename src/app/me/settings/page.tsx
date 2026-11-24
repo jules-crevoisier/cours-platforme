@@ -34,7 +34,7 @@ export default async function SettingsPage() {
       <PageHeader title="Paramètres" />
 
       {/* ── Compte ───────────────────────────────────────── */}
-      <section aria-labelledby="account-title" className="flex flex-col gap-3">
+      <section aria-labelledby="account-title" className="flex flex-col gap-3 panel">
         <h2 id="account-title" className="text-xl">
           Compte
         </h2>
@@ -61,7 +61,7 @@ export default async function SettingsPage() {
       </section>
 
       {/* ── Agenda ───────────────────────────────────────── */}
-      <section id="calendrier" aria-labelledby="calendar-title" className="flex flex-col gap-3">
+      <section id="calendrier" aria-labelledby="calendar-title" className="flex flex-col gap-3 panel">
         <h2 id="calendar-title" className="text-xl">
           Agenda
         </h2>
@@ -109,7 +109,7 @@ export default async function SettingsPage() {
       </section>
 
       {/* ── RGPD ─────────────────────────────────────────── */}
-      <section aria-labelledby="data-title" className="flex flex-col gap-3">
+      <section aria-labelledby="data-title" className="flex flex-col gap-3 panel">
         <h2 id="data-title" className="text-xl">
           Données personnelles
         </h2>

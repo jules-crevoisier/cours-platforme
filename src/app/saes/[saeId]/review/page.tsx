@@ -246,7 +246,7 @@ export default async function ReviewQueuePage({ params, searchParams }: PageProp
           <QueueNav prevHref={prevHref} nextHref={nextHref} position={index + 1} total={list.length} />
 
           <div className="grid gap-10 lg:grid-cols-2 lg:items-start">
-            <section aria-labelledby="student-title" className="flex flex-col gap-8">
+            <section aria-labelledby="student-title" className="flex flex-col gap-8 panel">
               <div className="flex flex-col gap-2">
                 <h2 id="student-title" className="text-xl break-words">
                   {current.user.name}
@@ -322,7 +322,7 @@ export default async function ReviewQueuePage({ params, searchParams }: PageProp
               </div>
             </section>
 
-            <section aria-labelledby="teacher-title" className="flex flex-col gap-4">
+            <section aria-labelledby="teacher-title" className="flex flex-col gap-4 panel">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 id="teacher-title" className="text-xl">
                   Positionnement enseignant

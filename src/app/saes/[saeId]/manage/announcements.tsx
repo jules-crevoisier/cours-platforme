@@ -19,7 +19,7 @@ type Props = { saeId: string; announcements: ManagedAnnouncement[] };
 export function AnnouncementsSection({ saeId, announcements }: Props) {
   return (
     <div className="flex flex-col gap-10">
-      <section aria-labelledby="nouvelle-annonce" className="flex flex-col gap-4">
+      <section aria-labelledby="nouvelle-annonce" className="flex flex-col gap-4 panel">
         <h2 id="nouvelle-annonce" className="text-xl">
           Nouvelle annonce
         </h2>
@@ -51,7 +51,7 @@ export function AnnouncementsSection({ saeId, announcements }: Props) {
         </ActionForm>
       </section>
 
-      <section aria-labelledby="annonces-publiees" className="flex flex-col gap-4">
+      <section aria-labelledby="annonces-publiees" className="flex flex-col gap-4 panel">
         <h2 id="annonces-publiees" className="text-xl">
           Publiées
         </h2>

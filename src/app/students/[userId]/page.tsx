@@ -103,7 +103,7 @@ export default async function StudentPage({ params }: PageProps<"/students/[user
         actions={<PrintButton />}
       />
 
-      <section aria-labelledby="st-radar" className="flex flex-col gap-4">
+      <section aria-labelledby="st-radar" className="flex flex-col gap-4 panel">
         <h2 id="st-radar" className="text-xl">
           Compétences
         </h2>
@@ -115,7 +115,7 @@ export default async function StudentPage({ params }: PageProps<"/students/[user
         />
       </section>
 
-      <section aria-labelledby="st-saes" className="flex flex-col gap-3">
+      <section aria-labelledby="st-saes" className="flex flex-col gap-3 panel">
         <h2 id="st-saes" className="text-xl">
           SAÉ
         </h2>
@@ -176,7 +176,7 @@ export default async function StudentPage({ params }: PageProps<"/students/[user
         )}
       </section>
 
-      <section aria-labelledby="st-portfolio" className="flex flex-col gap-4">
+      <section aria-labelledby="st-portfolio" className="flex flex-col gap-4 panel">
         <h2 id="st-portfolio" className="text-xl">
           Portfolio
         </h2>

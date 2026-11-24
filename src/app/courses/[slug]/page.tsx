@@ -95,7 +95,7 @@ export default async function CoursePage({ params }: PageProps<"/courses/[slug]"
       {course.summary && <p className="max-w-prose whitespace-pre-line break-words">{course.summary}</p>}
 
       {announcements.length > 0 && (
-        <section aria-labelledby="annonces" className="flex flex-col gap-4">
+        <section aria-labelledby="annonces" className="flex flex-col gap-4 panel">
           <h2 id="annonces" className="text-xl">
             Annonces
           </h2>
@@ -119,7 +119,7 @@ export default async function CoursePage({ params }: PageProps<"/courses/[slug]"
         </section>
       )}
 
-      <section aria-labelledby="sommaire" className="flex flex-col gap-4">
+      <section aria-labelledby="sommaire" className="flex flex-col gap-4 panel">
         <h2 id="sommaire" className="text-xl">
           Sommaire
         </h2>
@@ -154,7 +154,7 @@ export default async function CoursePage({ params }: PageProps<"/courses/[slug]"
       </section>
 
       {saes.length > 0 && (
-        <section aria-labelledby="saes-liees" className="flex flex-col gap-4">
+        <section aria-labelledby="saes-liees" className="flex flex-col gap-4 panel">
           <h2 id="saes-liees" className="text-xl">
             SAÉ liées
           </h2>

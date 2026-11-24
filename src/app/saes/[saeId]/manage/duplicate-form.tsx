@@ -4,7 +4,7 @@ import { ActionForm, SubmitButton } from "../../_components/action-form";
 /** Reconduction d'une année sur l'autre : copie en brouillon avec dates décalées */
 export function DuplicateSection({ saeId }: { saeId: string }) {
   return (
-    <section aria-labelledby="dupliquer" className="flex flex-col gap-4">
+    <section aria-labelledby="dupliquer" className="flex flex-col gap-4 panel">
       <h2 id="dupliquer" className="text-xl">
         Dupliquer
       </h2>
