@@ -18,6 +18,8 @@ import type { SaveResult } from "@/components/editor";
 // ── Schémas ──────────────────────────────────────────────────
 const idSchema = z.string().min(1).max(64);
 
+import { parseSemester } from "@/lib/semesters";
+
 // Les colonnes String de Prisma sont des VARCHAR(191) sous MariaDB
 const TITLE_MAX = 190;
 
@@ -32,6 +34,7 @@ const courseFieldsSchema = z.object({
     .trim()
     .max(5000, "Résumé trop long (5000 caractères max).")
     .transform((s) => (s.length > 0 ? s : null)),
+  semester: z.string().transform((s) => parseSemester(s)),
 });
 
 const pageTitleSchema = z
@@ -104,7 +107,7 @@ export async function createCourse(_prev: ActionState, formData: FormData): Prom
   const user = await requireUser();
   if (!canCreateCourse(user)) return { ok: false, error: "Seuls les enseignants peuvent créer un cours." };
 
-  const parsed = courseFieldsSchema.safeParse({ title: str(formData, "title"), summary: str(formData, "summary") });
+  const parsed = courseFieldsSchema.safeParse({ title: str(formData, "title"), summary: str(formData, "summary"), semester: str(formData, "semester") });
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
 
   let slug: string | null = null;
@@ -112,7 +115,7 @@ export async function createCourse(_prev: ActionState, formData: FormData): Prom
     const candidate = await uniqueSlug(parsed.data.title);
     try {
       await db.course.create({
-        data: { slug: candidate, title: parsed.data.title, summary: parsed.data.summary, ownerId: user.id },
+        data: { slug: candidate, title: parsed.data.title, summary: parsed.data.summary, semester: parsed.data.semester, ownerId: user.id },
       });
       slug = candidate;
     } catch (err) {
@@ -135,6 +138,7 @@ export async function updateCourseSettings(courseId: string, _prev: ActionState,
     .safeParse({
       title: str(formData, "title"),
       summary: str(formData, "summary"),
+      semester: str(formData, "semester"),
       published: formData.get("published") === "on",
     });
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
@@ -145,7 +149,7 @@ export async function updateCourseSettings(courseId: string, _prev: ActionState,
 
   await db.course.update({
     where: { id: course.id },
-    data: { title: parsed.data.title, summary: parsed.data.summary, published: parsed.data.published },
+    data: { title: parsed.data.title, summary: parsed.data.summary, semester: parsed.data.semester, published: parsed.data.published },
   });
   revalidateCourse(course.slug);
   return { ok: true };
@@ -364,7 +368,7 @@ export async function duplicateCourse(courseId: string): Promise<ActionState> {
       await db.$transaction(
         async (tx) => {
           const copy = await tx.course.create({
-            data: { slug: candidate, title, summary: course.summary, ownerId: user.id, published: false },
+            data: { slug: candidate, title, summary: course.summary, semester: course.semester, ownerId: user.id, published: false },
             select: { id: true },
           });
           // Parents toujours insérés avant leurs enfants (niveau par niveau)

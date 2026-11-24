@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/session";
 import { canCreateCourse, canEditCourse, isAdmin, isStaff } from "@/lib/permissions";
 import { EmptyState, PageHeader, StatusBadge, Swatch } from "@/components/ui";
 import { publishCourses } from "./bulk-actions";
+import { SEMESTERS, parseSemester, semesterLabel } from "@/lib/semesters";
 import { parsePage } from "./_lib/pagination";
 
 export const metadata: Metadata = { title: "Cours" };
@@ -17,6 +18,7 @@ export default async function CoursesPage({ searchParams }: PageProps<"/courses"
   const sp = await searchParams;
   const onlyDrafts = one(sp.etat) === "brouillons" && isStaff(user);
   const q = one(sp.q).trim().slice(0, 100);
+  const semester = parseSemester(one(sp.semestre));
   const justPublished = Number.parseInt(one(sp.publie), 10);
 
   // Même règle que canViewCourse : publiés, ou ceux que je peux modifier.
@@ -27,6 +29,7 @@ export default async function CoursesPage({ searchParams }: PageProps<"/courses"
     AND: [
       visibility,
       onlyDrafts ? { published: false } : {},
+      semester ? { semester } : {},
       q ? { OR: [{ title: { contains: q } }, { summary: { contains: q } }] } : {},
     ],
   };
@@ -52,6 +55,7 @@ export default async function CoursesPage({ searchParams }: PageProps<"/courses"
     const params = new URLSearchParams();
     if (onlyDrafts) params.set("etat", "brouillons");
     if (q) params.set("q", q);
+    if (semester) params.set("semestre", semester);
     if (p > 1) params.set("page", String(p));
     const s = params.toString();
     return s ? `/courses?${s}` : "/courses";
@@ -82,6 +86,7 @@ export default async function CoursesPage({ searchParams }: PageProps<"/courses"
       <div className="flex flex-wrap items-end gap-3">
         <form action="/courses" method="get" role="search" className="flex flex-wrap items-end gap-2">
           {onlyDrafts && <input type="hidden" name="etat" value="brouillons" />}
+          {semester && <input type="hidden" name="semestre" value={semester} />}
           <label className="grid gap-1 text-sm">
             <span className="label">Rechercher un cours</span>
             <input type="search" name="q" defaultValue={q} maxLength={100} className="input min-h-11" />
@@ -110,8 +115,28 @@ export default async function CoursesPage({ searchParams }: PageProps<"/courses"
         )}
       </div>
 
+      <nav aria-label="Filtrer par semestre" className="flex flex-wrap gap-2">
+        {[{ value: "", label: "Tous les semestres" }, ...SEMESTERS].map((s) => {
+          const params = new URLSearchParams();
+          if (onlyDrafts) params.set("etat", "brouillons");
+          if (q) params.set("q", q);
+          if (s.value) params.set("semestre", s.value);
+          const active = (semester ?? "") === s.value;
+          return (
+            <Link
+              key={s.value || "all"}
+              href={params.toString() ? `/courses?${params}` : "/courses"}
+              className={`btn ${active ? "btn-primary" : "btn-ghost"}`}
+              aria-current={active ? "page" : undefined}
+            >
+              {s.label}
+            </Link>
+          );
+        })}
+      </nav>
+
       {courses.length === 0 ? (
-        <EmptyState>{q || onlyDrafts ? "Aucun cours ne correspond." : "Aucun cours."}</EmptyState>
+        <EmptyState>{q || onlyDrafts || semester ? "Aucun cours ne correspond." : "Aucun cours."}</EmptyState>
       ) : (
         <form action={publishCourses} className="flex flex-col gap-4">
           {selectable.length > 0 && (
@@ -141,6 +166,7 @@ export default async function CoursesPage({ searchParams }: PageProps<"/courses"
                         {course._count.pages} page{course._count.pages > 1 ? "s" : ""}
                       </span>
                       <span>{course.owner.name}</span>
+                      {course.semester && <StatusBadge tone="accent">{semesterLabel(course.semester)}</StatusBadge>}
                       {!course.published && <StatusBadge tone="warn">Brouillon</StatusBadge>}
                     </div>
                   </div>

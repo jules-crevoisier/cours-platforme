@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { SEMESTERS } from "@/lib/semesters";
 import { createCourse } from "../actions";
 
 export function NewCourseForm() {
@@ -19,6 +20,19 @@ export function NewCourseForm() {
           Résumé <span className="font-normal text-muted">(facultatif)</span>
         </label>
         <textarea id="new-course-summary" name="summary" rows={4} maxLength={5000} className="input py-2" />
+      </div>
+      <div>
+        <label htmlFor="new-course-semester" className="label">
+          Semestre <span className="font-normal text-muted">(facultatif)</span>
+        </label>
+        <select id="new-course-semester" name="semester" defaultValue="" className="input">
+          <option value="">Non classé</option>
+          {SEMESTERS.map((s) => (
+            <option key={s.value} value={s.value}>
+              {s.label}
+            </option>
+          ))}
+        </select>
       </div>
       {state && !state.ok && (
         <p role="alert" className="form-error">
