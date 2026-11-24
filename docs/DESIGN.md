@@ -1,30 +1,31 @@
-# Design — simple, carré, lisible
+# Design — simple, doux, lisible
 
 **Principe.** Un outil de travail qu'on comprend sans lire de mode d'emploi. Chaque page a un titre, son contenu
 et une ou deux actions. Ce qui ne sert pas à agir ou à lire le cours n'est pas affiché.
 
 ## Règles (non négociables)
-1. **Tout est carré** : aucun arrondi (les tokens `--radius-*` valent 0 ; ne pas ajouter de `rounded-full`).
-2. **Une seule police** : Archivo (variable, `next/font`). Titres en 700 élargis (`font-stretch: 112%`).
+1. **Formes douces** (refonte nov. 2026, inspirée du moodboard Mobbin) : boutons et champs `rounded-lg`, cartes et panneaux `rounded-2xl` avec l'ombre `--shadow-card`, étiquettes en pastille (`rounded-full`). Pas d'ombre dure ni de bordure épaisse.
+2. **Une seule police** : Plus Jakarta Sans (variable, `next/font`). Titres en 700, interlettrage serré.
    Pas de police mono, sauf pour du vrai code ou une URL à copier (`font-mono` = mono système).
-3. **Un seul accent** : bleu électrique `--accent`, pour l'action principale, l'élément actif et les liens.
+3. **Un seul accent** : indigo `--accent`, pour l'action principale, l'élément actif et les liens.
    Jamais pour un statut.
 4. **Pas de surtitre** au-dessus des titres, pas de capitales espacées, pas de numérotation décorative (01, 02…).
 5. **Pas de phrase d'explication** sous un titre ou dans une section. Au plus une ligne factuelle (dates, groupe).
    Les états vides tiennent en une ligne (« Aucun jalon. ») + un bouton si une action existe.
 6. **Pas de « · »** pour coller des informations : une info par élément, mise en page avec des espaces.
-7. **Un badge maximum par ligne.** Un badge = un carré de couleur + un mot (`.badge`, `StatusBadge`).
+7. **Un badge maximum par ligne.** Un badge = une pastille avec un point de couleur + un mot (`.badge`, `StatusBadge`).
 8. **Une action n'apparaît qu'une fois** par page. Pas de lien en double vers la même destination.
 
 ## Couleurs (tokens dans `globals.css`, jamais de valeur en dur)
 | Token | Clair | Usage |
 |---|---|---|
-| `--bg` / `--surface` | #FFFFFF | fond, cartes |
-| `--sunken` | #F4F4F3 | barre latérale, survols |
-| `--ink` | #111111 | texte |
-| `--muted` | #5E5E5B | texte secondaire |
-| `--line` / `--line-strong` | #E6E6E3 / #7D7D79 | filets / bords des champs |
-| `--accent` | #2244FF | action, actif, lien |
+| `--bg` | #F6F6FB | fond de page (lavande très clair) |
+| `--surface` | #FFFFFF | cartes, barre latérale |
+| `--sunken` | #EEEEF8 | survols, pastilles neutres |
+| `--ink` | #15152B | texte |
+| `--muted` | #55566F | texte secondaire |
+| `--line` / `--line-strong` | #E3E3EF / #8284A0 | filets / bords des champs |
+| `--accent` | #4F46E5 | action, actif, lien |
 | `--ok` `--warn` `--danger` (+ `-soft`) | vert / ambre / rouge | statuts uniquement |
 
 Thème clair par défaut. Le thème sombre existe (`[data-theme="dark"]`), il s'active depuis le menu du compte

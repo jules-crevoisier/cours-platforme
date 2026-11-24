@@ -69,7 +69,7 @@ export default async function LoginPage() {
                     loading="lazy"
                     decoding="async"
                     referrerPolicy="no-referrer"
-                    className="aspect-square w-full border border-line bg-sunken object-cover"
+                    className="aspect-square w-full rounded-xl border border-line bg-sunken object-cover"
                   />
                   <span className="truncate text-sm text-muted group-hover:text-ink group-hover:underline">
                     {p.showcaseTitle || p.name}
@@ -92,7 +92,7 @@ function Squares() {
   return (
     <div aria-hidden="true" className="hidden grid-cols-4 gap-3 lg:grid">
       {cells.map((c, i) => (
-        <span key={i} className="aspect-square" style={{ background: `var(${c})` }} />
+        <span key={i} className="aspect-square rounded-2xl" style={{ background: `var(${c})` }} />
       ))}
     </div>
   );
