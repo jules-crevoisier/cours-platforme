@@ -1,5 +1,5 @@
 # Dokploy (serveur léger) : tire les images construites par GitHub Actions, ne compile rien.
-# RECETTE (branche test, données de démo) : à utiliser À LA PLACE de docker-compose.yml dans Dokploy ("Compose path").
+# RECETTE (branche develop, données de démo) : à utiliser À LA PLACE de docker-compose.yml dans Dokploy ("Compose path").
 # Aucune variable en plus de celles de docker-compose.yml. Pour la prod : docker-compose.registry.yml.
 services:
   db:
@@ -21,7 +21,7 @@ services:
       retries: 10
 
   migrate:
-    image: ghcr.io/jules-crevoisier/cours-platforme/migrate:test
+    image: ghcr.io/jules-crevoisier/cours-platforme/migrate:develop
     pull_policy: always
     environment:
       DATABASE_URL: mysql://${MARIADB_USER:-cours}:${MARIADB_PASSWORD}@db:3306/${MARIADB_DATABASE:-cours}
@@ -32,7 +32,7 @@ services:
     mem_limit: 512m
 
   app:
-    image: ghcr.io/jules-crevoisier/cours-platforme/app:test
+    image: ghcr.io/jules-crevoisier/cours-platforme/app:develop
     pull_policy: always
     restart: unless-stopped
     environment:
