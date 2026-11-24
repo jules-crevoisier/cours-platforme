@@ -166,9 +166,9 @@ export default async function CoursePageView({ params }: PageProps<"/courses/[sl
         </nav>
       </details>
 
-      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,52rem)_minmax(0,1fr)]">
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,52rem)_minmax(13rem,1fr)]">
         <aside className="hidden min-w-0 xl:col-start-3 xl:row-start-1 xl:block">
-          <div className="flex flex-col gap-6 xl:sticky xl:top-24 xl:ml-auto xl:max-h-[calc(100dvh-8rem)] xl:w-60 xl:overflow-y-auto">
+          <div className="flex flex-col gap-6 xl:sticky xl:top-24 xl:ml-auto xl:max-h-[calc(100dvh-8rem)] xl:w-full xl:max-w-60 xl:overflow-y-auto">
             <details open className="group text-sm">
               <summary className="flex min-h-9 cursor-pointer list-none items-center justify-between gap-2 px-2 font-semibold text-muted [&::-webkit-details-marker]:hidden">
                 <span>Sommaire</span>
