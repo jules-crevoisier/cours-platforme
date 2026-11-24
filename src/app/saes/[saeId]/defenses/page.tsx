@@ -112,7 +112,7 @@ export default async function DefensesPage({ params }: PageProps<"/saes/[saeId]/
       />
 
       {/* ── Créneaux ───────────────────────────────────────── */}
-      <section aria-labelledby="creneaux" className="flex flex-col gap-6">
+      <section aria-labelledby="creneaux" className="flex flex-col gap-6 panel">
         <div className="flex flex-col gap-4">
           <h2 id="creneaux" className="text-xl">
             Créneaux

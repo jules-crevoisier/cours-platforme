@@ -122,7 +122,7 @@ export default async function PortfolioPage({ searchParams }: PageProps<"/me/por
         )}
       </section>
 
-      <section aria-labelledby="evidences-title" className="flex flex-col gap-4">
+      <section aria-labelledby="evidences-title" className="flex flex-col gap-4 panel">
         <h2 id="evidences-title" className="text-xl">
           Traces
         </h2>

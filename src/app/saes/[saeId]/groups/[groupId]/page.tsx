@@ -166,7 +166,7 @@ export default async function GroupPage({ params }: PageProps<"/saes/[saeId]/gro
       />
 
       {slot && (
-        <section aria-labelledby="defense-title" className="flex flex-col gap-2">
+        <section aria-labelledby="defense-title" className="flex flex-col gap-2 panel">
           <h2 id="defense-title" className="text-xl">
             Soutenance
           </h2>
@@ -191,7 +191,7 @@ export default async function GroupPage({ params }: PageProps<"/saes/[saeId]/gro
         </section>
       )}
 
-      <section aria-labelledby="workspace-title" className="flex flex-col gap-3">
+      <section aria-labelledby="workspace-title" className="flex flex-col gap-3 panel">
         <h2 id="workspace-title" className="text-xl">
           Espace de travail
         </h2>
@@ -381,7 +381,7 @@ export default async function GroupPage({ params }: PageProps<"/saes/[saeId]/gro
       </section>
 
       {sae.milestones.length > 0 && group.members.length > 0 && (
-        <section aria-labelledby="assessments-title" className="flex flex-col gap-4">
+        <section aria-labelledby="assessments-title" className="flex flex-col gap-4 panel">
           <h2 id="assessments-title" className="text-xl">
             Auto-évaluations
           </h2>

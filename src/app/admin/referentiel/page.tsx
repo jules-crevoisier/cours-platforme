@@ -192,7 +192,7 @@ export default async function ReferentielPage() {
       )}
 
       {canEdit && competences.length > 0 && (
-        <section aria-labelledby="ajout-ac" className="flex flex-col gap-4">
+        <section aria-labelledby="ajout-ac" className="flex flex-col gap-4 panel">
           <h2 id="ajout-ac" className="text-xl">
             Ajouter un AC local
           </h2>

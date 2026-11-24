@@ -210,7 +210,7 @@ export default async function MilestonePage({ params }: PageProps<"/saes/[saeId]
       )}
 
       {myGroup && (
-        <section aria-labelledby="my-assessment-title" className="flex flex-col gap-3">
+        <section aria-labelledby="my-assessment-title" className="flex flex-col gap-3 panel">
           <h2 id="my-assessment-title" className="text-xl">
             Mon auto-évaluation
           </h2>
@@ -253,7 +253,7 @@ export default async function MilestonePage({ params }: PageProps<"/saes/[saeId]
       )}
 
       {myGroup && peerEnabled && (
-        <section aria-labelledby="peer-title" className="flex flex-col gap-3">
+        <section aria-labelledby="peer-title" className="flex flex-col gap-3 panel">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <h2 id="peer-title" className="text-xl">
               Évaluation entre pairs
@@ -285,7 +285,7 @@ export default async function MilestonePage({ params }: PageProps<"/saes/[saeId]
         </section>
       )}
 
-      <section aria-labelledby="criteria-title" className="flex flex-col gap-3">
+      <section aria-labelledby="criteria-title" className="flex flex-col gap-3 panel">
         <h2 id="criteria-title" className="text-xl">
           Critères
         </h2>
@@ -308,7 +308,7 @@ export default async function MilestonePage({ params }: PageProps<"/saes/[saeId]
       </section>
 
       {isManager && (
-        <section aria-labelledby="followup-title" className="flex flex-col gap-4">
+        <section aria-labelledby="followup-title" className="flex flex-col gap-4 panel">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div className="flex flex-col gap-1">
               <h2 id="followup-title" className="text-xl">

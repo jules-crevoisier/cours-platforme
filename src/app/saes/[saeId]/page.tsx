@@ -157,7 +157,7 @@ export default async function SaePage({ params }: PageProps<"/saes/[saeId]">) {
       </dl>
 
       {sae.announcements.length > 0 && (
-        <section aria-labelledby="annonces" className="flex flex-col gap-4">
+        <section aria-labelledby="annonces" className="flex flex-col gap-4 panel">
           <h2 id="annonces" className="text-xl">
             Annonces
           </h2>
@@ -181,7 +181,7 @@ export default async function SaePage({ params }: PageProps<"/saes/[saeId]">) {
         </section>
       )}
 
-      <section aria-labelledby="jalons" className="flex flex-col gap-4">
+      <section aria-labelledby="jalons" className="flex flex-col gap-4 panel">
         <h2 id="jalons" className="text-xl">
           Jalons
         </h2>
@@ -204,7 +204,7 @@ export default async function SaePage({ params }: PageProps<"/saes/[saeId]">) {
       </section>
 
       {(sae._count.defenseSlots > 0 || canManage) && (
-        <section aria-labelledby="soutenances" className="flex flex-col gap-4">
+        <section aria-labelledby="soutenances" className="flex flex-col gap-4 panel">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 id="soutenances" className="text-xl">
               Soutenances
@@ -233,7 +233,7 @@ export default async function SaePage({ params }: PageProps<"/saes/[saeId]">) {
         </section>
       )}
 
-      <section aria-labelledby="sujet" className="flex flex-col gap-4">
+      <section aria-labelledby="sujet" className="flex flex-col gap-4 panel">
         <h2 id="sujet" className="text-xl">
           Sujet
         </h2>
@@ -250,7 +250,7 @@ export default async function SaePage({ params }: PageProps<"/saes/[saeId]">) {
         )}
       </section>
 
-      <section aria-labelledby="groupes" className="flex flex-col gap-4">
+      <section aria-labelledby="groupes" className="flex flex-col gap-4 panel">
         <h2 id="groupes" className="text-xl">
           Groupes
         </h2>

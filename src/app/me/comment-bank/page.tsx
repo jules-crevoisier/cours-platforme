@@ -79,7 +79,7 @@ export default async function CommentBankPage({ searchParams }: PageProps<"/me/c
         </datalist>
       </section>
 
-      <section aria-labelledby="snippets-title" className="flex flex-col gap-4">
+      <section aria-labelledby="snippets-title" className="flex flex-col gap-4 panel">
         <h2 id="snippets-title" className="text-xl">
           Mes commentaires
         </h2>
