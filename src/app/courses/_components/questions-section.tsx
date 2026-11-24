@@ -111,7 +111,7 @@ export async function QuestionsSection({ user, course, pageId }: Props) {
                         Options<span className="sr-only"> de la question</span>
                         <Chevron />
                       </summary>
-                      <div className="absolute right-0 z-20 mt-1 flex w-60 flex-col border border-ink bg-surface p-1">
+                      <div className="absolute right-0 z-20 mt-1 flex w-60 flex-col rounded-xl border border-line bg-surface p-1 shadow-[var(--shadow-pop)]">
                         {canResolve && (
                           <ActionButton
                             action={setQuestionResolved.bind(null, q.id, !q.resolved)}

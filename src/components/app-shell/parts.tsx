@@ -8,10 +8,10 @@ export function Wordmark({ className }: { className?: string }) {
   return (
     <span className={cx("flex items-center gap-2.5", className)}>
       <svg aria-hidden="true" viewBox="0 0 32 32" width="28" height="28" className="shrink-0">
-        <rect width="32" height="32" fill="var(--accent)" />
+        <rect width="32" height="32" rx="9" fill="var(--accent)" />
         <path d="M7 24V8h4l5 8 5-8h4v16h-4v-9.5L16 21l-5-6.5V24z" fill="var(--accent-ink)" />
       </svg>
-      <span className="text-base leading-none font-bold tracking-tight whitespace-nowrap text-ink [font-stretch:115%]">
+      <span className="text-base leading-none font-bold tracking-tight whitespace-nowrap text-ink">
         Cours &amp; SAÉ
       </span>
     </span>

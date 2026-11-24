@@ -104,7 +104,7 @@ export default function BlockEditor({ initialContent, initialMarkdown, editable 
   }
 
   return (
-    <div className="border border-line bg-surface">
+    <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-[var(--shadow-card)]">
       {canEdit && (
         <p
           role="status"

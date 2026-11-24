@@ -1,13 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import { AppShell } from "@/components/app-shell";
 import { SiteFooter, SiteHeader } from "@/components/site-header";
 import { getCurrentUser } from "@/lib/session";
 import { getTheme } from "@/lib/theme";
 import "./globals.css";
 
-// Une seule famille, variable (graisse + largeur) : titres élargis, texte normal ; next/font l'auto-héberge.
-const sans = Archivo({ variable: "--ff-sans", subsets: ["latin"], axes: ["wdth"], display: "swap" });
+// Une seule famille, variable (graisse) ; next/font l'auto-héberge.
+const sans = Plus_Jakarta_Sans({ variable: "--ff-sans", subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
   title: { default: "Cours & SAÉ — BUT MMI", template: "%s — Cours & SAÉ" },
@@ -26,7 +26,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="fr" data-theme={theme} className={`${sans.variable} antialiased`}>
       <head>
-        <meta name="theme-color" content={theme === "dark" ? "#171717" : "#ffffff"} />
+        <meta name="theme-color" content={theme === "dark" ? "#16162a" : "#f6f6fb"} />
       </head>
       <body className="min-h-[100dvh]">
         <a href="#contenu" className="skip-link">

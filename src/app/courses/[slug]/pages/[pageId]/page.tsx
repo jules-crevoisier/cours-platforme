@@ -103,7 +103,7 @@ export default async function CoursePageView({ params }: PageProps<"/courses/[sl
                     Plus d&apos;options
                     <Chevron />
                   </summary>
-                  <div className="mt-2 flex flex-col gap-5 border border-ink bg-surface p-4 md:absolute md:right-0 md:z-20 md:w-[26rem]">
+                  <div className="mt-2 flex flex-col gap-5 rounded-2xl border border-line bg-surface p-4 shadow-[var(--shadow-pop)] md:absolute md:right-0 md:z-20 md:w-[26rem]">
                     <TitleForm
                       action={renamePage.bind(null, page.id)}
                       label="Titre de la page"
