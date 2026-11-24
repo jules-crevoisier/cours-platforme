@@ -40,7 +40,7 @@ export function PeerReviewOverview({ groups, reviews, canSeeDetails }: Props) {
   const analysed = groups.map((g) => ({ group: g, ...analyseGroup(g.members, reviews) }));
 
   return (
-    <section aria-labelledby="peer-overview-title" className="flex flex-col gap-6">
+    <section aria-labelledby="peer-overview-title" className="flex flex-col gap-6 panel">
       <h2 id="peer-overview-title" className="text-xl">
         Évaluation entre pairs
       </h2>

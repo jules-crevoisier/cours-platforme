@@ -195,7 +195,7 @@ export default async function AssessmentPage({ params }: PageProps<"/assessments
           />
         </section>
       ) : (
-        <section aria-labelledby="criteria-title" className="flex flex-col gap-4">
+        <section aria-labelledby="criteria-title" className="flex flex-col gap-4 panel">
           <h2 id="criteria-title" className="text-xl">
             Positionnement
           </h2>
@@ -218,7 +218,7 @@ export default async function AssessmentPage({ params }: PageProps<"/assessments
         </section>
       )}
 
-      <section aria-labelledby="reflection-title" className="flex flex-col gap-3">
+      <section aria-labelledby="reflection-title" className="flex flex-col gap-3 panel">
         <h2 id="reflection-title" className="text-xl">
           Réflexion globale
         </h2>
@@ -229,7 +229,7 @@ export default async function AssessmentPage({ params }: PageProps<"/assessments
         )}
       </section>
 
-      <section aria-labelledby="comments-title" className="flex flex-col gap-4">
+      <section aria-labelledby="comments-title" className="flex flex-col gap-4 panel">
         <h2 id="comments-title" className="text-xl">
           Commentaires
         </h2>

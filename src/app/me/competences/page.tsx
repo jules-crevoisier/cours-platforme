@@ -42,7 +42,7 @@ export default async function CompetencesPage({ searchParams }: PageProps<"/me/c
         }
       />
 
-      <section aria-labelledby="radar-title" className="flex flex-col gap-4">
+      <section aria-labelledby="radar-title" className="flex flex-col gap-4 panel">
         <h2 id="radar-title" className="text-xl">
           Profil
         </h2>
@@ -52,7 +52,7 @@ export default async function CompetencesPage({ searchParams }: PageProps<"/me/c
         </div>
       </section>
 
-      <section aria-labelledby="ac-title" className="flex flex-col gap-6">
+      <section aria-labelledby="ac-title" className="flex flex-col gap-6 panel">
         <h2 id="ac-title" className="text-xl">
           Apprentissages critiques
         </h2>
@@ -75,7 +75,7 @@ export default async function CompetencesPage({ searchParams }: PageProps<"/me/c
           const levels = [...new Set(learnings.map((l) => l.level))].sort((a, b) => a - b);
           const gap = isSignificantGap(score?.self, score?.teacher);
           return (
-            <section key={c.id} aria-labelledby={`comp-${c.code}`} className="flex flex-col gap-3">
+            <section key={c.id} aria-labelledby={`comp-${c.code}`} className="flex flex-col gap-3 panel">
               <div className="flex flex-col gap-1">
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                   <h3 id={`comp-${c.code}`} className="flex flex-wrap items-center gap-2 text-lg">

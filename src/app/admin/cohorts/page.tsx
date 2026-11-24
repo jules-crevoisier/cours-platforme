@@ -71,7 +71,7 @@ export default async function CohortsPage() {
           )}
         </section>
 
-        <section aria-labelledby="cohort-new" className="flex flex-col gap-4">
+        <section aria-labelledby="cohort-new" className="flex flex-col gap-4 panel">
           <h2 id="cohort-new" className="text-xl">
             Nouvelle promo
           </h2>

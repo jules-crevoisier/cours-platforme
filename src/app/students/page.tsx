@@ -106,7 +106,7 @@ export default async function StudentsPage({ searchParams }: PageProps<"/student
         </div>
       </form>
 
-      <section aria-labelledby="students-results" className="flex flex-col gap-3">
+      <section aria-labelledby="students-results" className="flex flex-col gap-3 panel">
         <div className="flex flex-col gap-1">
           <h2 id="students-results" className={total === 0 ? "sr-only" : "text-xl"}>
             {total === 0 ? "Résultats" : `${total} étudiant${total > 1 ? "s" : ""}`}

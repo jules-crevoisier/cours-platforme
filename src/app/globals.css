@@ -227,6 +227,14 @@
     @apply rounded-2xl border border-line bg-surface p-5;
     box-shadow: var(--shadow-card);
   }
+  /* Panneau : une section d'écran (titre + contenu) posée sur une surface */
+  .panel {
+    @apply rounded-2xl border border-line bg-surface p-5 md:p-6;
+    box-shadow: var(--shadow-card);
+  }
+  .panel .panel {
+    @apply border-0 bg-transparent p-0 shadow-none;
+  }
   /* Carte cliquable : au survol, elle se soulève légèrement */
   a.card {
     transition:

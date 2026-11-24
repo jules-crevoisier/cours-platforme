@@ -255,7 +255,7 @@ function MilestonesTab({ sae, acGroups }: { sae: ManagedSae; acGroups: AcGroup[]
   const defaultLevel = levelForSemester(sae.semester);
 
   return (
-    <section aria-labelledby="jalons" className="flex flex-col gap-6">
+    <section aria-labelledby="jalons" className="flex flex-col gap-6 panel">
       <h2 id="jalons" className="sr-only">
         Jalons
       </h2>
@@ -481,7 +481,7 @@ function MilestonesTab({ sae, acGroups }: { sae: ManagedSae; acGroups: AcGroup[]
 function GroupsTab({ sae, unassigned }: { sae: ManagedSae; unassigned: number }) {
   return (
     <div className="flex flex-col gap-10">
-      <section aria-labelledby="groupes" className="flex flex-col gap-4">
+      <section aria-labelledby="groupes" className="flex flex-col gap-4 panel">
         <h2 id="groupes" className="sr-only">
           Groupes
         </h2>
@@ -604,7 +604,7 @@ function GroupsTab({ sae, unassigned }: { sae: ManagedSae; unassigned: number })
         )}
       </section>
 
-      <section aria-labelledby="creer-groupes" className="flex flex-col gap-4">
+      <section aria-labelledby="creer-groupes" className="flex flex-col gap-4 panel">
         <h2 id="creer-groupes" className="text-xl">
           Créer des groupes
         </h2>
@@ -638,7 +638,7 @@ function GroupsTab({ sae, unassigned }: { sae: ManagedSae; unassigned: number })
 function AdvancedTab({ sae, canDelete }: { sae: ManagedSae; canDelete: boolean }) {
   return (
     <div className="flex max-w-3xl flex-col gap-10">
-      <section aria-labelledby="exporter" className="flex flex-col gap-4">
+      <section aria-labelledby="exporter" className="flex flex-col gap-4 panel">
         <h2 id="exporter" className="text-xl">
           Exporter
         </h2>

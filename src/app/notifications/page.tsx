@@ -75,7 +75,7 @@ function NotificationRow({ n, now }: { n: Item; now: Date }) {
 function Group({ id, title, items, now }: { id: string; title: string; items: Item[]; now: Date }) {
   if (items.length === 0) return null;
   return (
-    <section aria-labelledby={id} className="flex flex-col gap-2">
+    <section aria-labelledby={id} className="flex flex-col gap-2 panel">
       <h2 id={id} className="text-sm font-semibold text-muted">
         {title}
       </h2>
