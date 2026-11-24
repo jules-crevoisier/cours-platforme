@@ -7,7 +7,8 @@ import { ROLE_LABELS, type Role } from "@/lib/permissions";
 import type { CurrentUser } from "@/lib/session";
 import type { Theme } from "@/lib/theme";
 import { getFavorites, getUnreadCount } from "./data";
-import { MAIN_ITEMS, accountItems, initials, navSections } from "./nav";
+import { MAIN_ITEMS, accountItems, initials, navSections, railItems } from "./nav";
+import { Rail } from "./rail";
 import { ContentFooter, FavoritesNav, NotificationBell, Wordmark } from "./parts";
 import { PopoverPanel } from "./popover-panel";
 import { SearchField } from "./search-field";
@@ -28,52 +29,46 @@ export async function AppShell({ user, theme, children }: { user: CurrentUser; t
   const extraSections = sections.filter((s) => s.id !== "principal");
 
   return (
-    <div className="group/shell min-h-[100dvh] lg:pl-60 has-[[data-wide]]:lg:pl-16 print:pl-0">
-      {/* ── Barre latérale (≥ 1024 px) ── */}
-      <div className="shell-sidebar fixed inset-y-0 left-0 z-20 hidden w-60 flex-col border-r border-line bg-surface group-has-[[data-wide]]/shell:w-16 lg:flex">
-        <div className="flex h-16 shrink-0 items-center gap-1 pr-2 pl-4 group-has-[[data-wide]]/shell:h-auto group-has-[[data-wide]]/shell:flex-col group-has-[[data-wide]]/shell:gap-0 group-has-[[data-wide]]/shell:px-0 group-has-[[data-wide]]/shell:pt-3 group-has-[[data-wide]]/shell:pb-1">
-          <Link href="/" className="mr-auto flex min-h-11 items-center group-has-[[data-wide]]/shell:mr-0" title="Accueil">
-            <Wordmark labelClassName="group-has-[[data-wide]]/shell:hidden" />
-            <span className="sr-only"> — accueil</span>
-          </Link>
-          <NotificationBell count={unread} className="hover:bg-sunken" />
+    <div className="min-h-[100dvh] lg:pl-20 print:pl-0">
+      {/* ── Rail d'icônes (≥ 1024 px) ── */}
+      <div className="shell-sidebar fixed inset-y-0 left-0 z-20 hidden w-20 flex-col items-stretch border-r border-line bg-surface py-3 lg:flex">
+        <Link href="/" className="mb-4 flex min-h-12 items-center justify-center" title="Accueil">
+          <Wordmark labelClassName="hidden" />
+          <span className="sr-only">Cours &amp; SAÉ — accueil</span>
+        </Link>
+        <Rail items={railItems(user.role)} />
+      </div>
+
+      {/* ── Barre haute (≥ 1024 px) : recherche, notifications, compte ── */}
+      <header className="shell-topbar-d sticky top-0 z-10 hidden h-16 items-center gap-3 border-b border-line bg-surface/95 px-12 backdrop-blur lg:flex">
+        <div className="w-full max-w-lg">
+          <SearchField />
         </div>
-        <div className="flex flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-3 pt-1 pb-6">
-          <div className="group-has-[[data-wide]]/shell:hidden">
-            <SearchField />
-          </div>
-          <Link
-            href="/search"
-            aria-label="Rechercher"
-            title="Rechercher"
-            className="hidden size-11 items-center justify-center self-center rounded-lg text-muted transition-colors hover:bg-sunken group-has-[[data-wide]]/shell:inline-flex"
-          >
-            <Icon name="search" size={18} />
-          </Link>
-          <SideNav sections={sections} label="Navigation principale" idPrefix="nav" />
-          <div className="group-has-[[data-wide]]/shell:hidden">
-            <FavoritesNav favorites={favorites} id="favoris-nav" />
-          </div>
-        </div>
-        <div className="shrink-0 border-t border-line p-2">
+        <div className="ml-auto flex items-center gap-1">
+          <NotificationBell count={unread} className="rounded-lg hover:bg-sunken" />
           <button
             type="button"
             popoverTarget="menu-utilisateur"
-            className="flex min-h-12 w-full cursor-pointer items-center gap-2.5 px-2 text-left transition-colors hover:bg-sunken group-has-[[data-wide]]/shell:justify-center"
+            className="flex min-h-11 cursor-pointer items-center gap-2.5 rounded-lg px-2 text-left transition-colors hover:bg-sunken"
           >
             <Avatar name={user.name} />
-            <span className="flex min-w-0 flex-1 flex-col group-has-[[data-wide]]/shell:hidden">
-              <span className="truncate text-sm font-semibold">{user.name}</span>
-              <span className="text-xs text-muted">{ROLE_LABELS[user.role]}</span>
+            <span className="flex flex-col">
+              <span className="text-sm leading-tight font-semibold">{user.name}</span>
+              <span className="text-xs leading-tight text-muted">{ROLE_LABELS[user.role]}</span>
             </span>
-            <Icon name="chevronRight" size={16} className="shrink-0 -rotate-90 text-muted group-has-[[data-wide]]/shell:hidden" />
+            <Icon name="chevronRight" size={16} className="shrink-0 rotate-90 text-muted" />
             <span className="sr-only">Ouvrir le menu du compte</span>
           </button>
           <PopoverPanel id="menu-utilisateur" label="Compte" className="user-menu">
             <AccountLinks role={user.role} theme={theme} />
+            {favorites.length > 0 && (
+              <div className="mt-1 border-t border-line pt-2">
+                <FavoritesNav favorites={favorites} id="favoris-menu" />
+              </div>
+            )}
           </PopoverPanel>
         </div>
-      </div>
+      </header>
 
       {/* ── Barre haute (< 1024 px) ── */}
       <header className="shell-topbar sticky top-0 z-30 border-b border-line bg-surface lg:hidden">
@@ -131,9 +126,9 @@ export async function AppShell({ user, theme, children }: { user: CurrentUser; t
         </div>
       </PopoverPanel>
 
-      <main id="contenu" tabIndex={-1} className="shell-main pt-6 outline-none md:pt-8 lg:pt-12">
-        <div className="w-full max-w-6xl has-[[data-wide]]:max-w-[100rem]">{children}</div>
-        <ContentFooter className="max-w-6xl" />
+      <main id="contenu" tabIndex={-1} className="shell-main pt-6 outline-none md:pt-8 lg:pt-8">
+        <div className="w-full max-w-[96rem]">{children}</div>
+        <ContentFooter className="max-w-[96rem]" />
       </main>
 
       <TabBar items={MAIN_ITEMS} />
