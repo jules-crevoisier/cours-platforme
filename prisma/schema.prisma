@@ -54,6 +54,7 @@ model User {
   announcements    Announcement[]
   notifications    Notification[]
   favorites        Favorite[]
+  pagesRead        PageRead[]
   pageRevisions    PageRevision[]
   questions        PageQuestion[]
   answers          PageAnswer[]
@@ -152,11 +153,25 @@ model Page {
   updatedBy   User?          @relation("PageUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
   revisions   PageRevision[]
   questions   PageQuestion[]
+  reads       PageRead[]
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
   @@index([courseId, parentId, position])
   @@fulltext([title, markdown])
+}
+
+/// « Page lue » : progression de lecture d'un utilisateur dans un cours
+model PageRead {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pageId    String
+  page      Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, pageId])
+  @@index([pageId])
+  @@index([userId, createdAt])
 }
 
 /// Historique des versions d'une page (instantané au plus toutes les 10 min par auteur)
