@@ -120,7 +120,7 @@ export async function AppShell({ user, theme, children }: { user: CurrentUser; t
       </PopoverPanel>
 
       <main id="contenu" tabIndex={-1} className="shell-main pt-6 outline-none md:pt-8 lg:pt-12">
-        <div className="w-full max-w-6xl">{children}</div>
+        <div className="w-full max-w-6xl has-[[data-wide]]:max-w-[100rem]">{children}</div>
         <ContentFooter className="max-w-6xl" />
       </main>
 

@@ -7,3 +7,13 @@
   --bn-colors-menu-background: var(--surface);
   --bn-border-radius: 8px;
 }
+
+/* Lecture confortable : texte 19 px, interligne large (le titre H1/H2/H3 suit via les unités relatives de BlockNote) */
+.bn-root.cours-editor .bn-block-content {
+  font-size: 1.1875rem;
+  line-height: 1.75;
+}
+.bn-root.cours-editor img,
+.bn-root.cours-editor video {
+  max-width: 100%;
+}

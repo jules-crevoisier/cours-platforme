@@ -97,7 +97,7 @@ export default async function PageHistory({ params, searchParams }: PageProps<"/
             </ol>
           </nav>
 
-          <section id="apercu" aria-labelledby="apercu-title" className="flex min-w-0 max-w-[70ch] scroll-mt-4 flex-col gap-4">
+          <section id="apercu" aria-labelledby="apercu-title" className="flex min-w-0 max-w-[64rem] scroll-mt-4 flex-col gap-4">
             {selected ? (
               <>
                 <div className="flex flex-wrap items-end justify-between gap-3">
