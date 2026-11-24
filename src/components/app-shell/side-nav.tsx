@@ -22,13 +22,14 @@ export function SideNav({ sections, label, idPrefix }: { sections: NavSection[];
                   <Link
                     href={item.href}
                     aria-current={active ? "page" : undefined}
+                    title={item.label}
                     className={cx(
-                      "flex min-h-11 items-center gap-2.5 rounded-lg px-2.5 text-sm transition-colors pointer-fine:min-h-9",
+                      "flex min-h-11 items-center gap-2.5 rounded-lg px-2.5 text-sm transition-colors pointer-fine:min-h-9 group-has-[[data-wide]]/shell:justify-center",
                       active ? "bg-accent-soft font-semibold text-accent" : "text-ink hover:bg-sunken",
                     )}
                   >
                     <Icon name={item.icon} size={18} className={cx("shrink-0", active ? "text-accent" : "text-muted")} />
-                    <span className="min-w-0 truncate">{item.label}</span>
+                    <span className="min-w-0 truncate group-has-[[data-wide]]/shell:sr-only">{item.label}</span>
                   </Link>
                 </li>
               );
@@ -37,7 +38,7 @@ export function SideNav({ sections, label, idPrefix }: { sections: NavSection[];
         );
         if (section.collapsible && section.label) {
           return (
-            <details key={section.id} open={section.items.some((i) => isActive(pathname, i.href))} className="group flex flex-col gap-1">
+            <details key={section.id} open={section.items.some((i) => isActive(pathname, i.href))} className="group flex flex-col gap-1 group-has-[[data-wide]]/shell:hidden">
               <summary
                 id={headingId}
                 className="flex min-h-9 cursor-pointer list-none items-center justify-between rounded-lg px-2.5 text-xs font-semibold text-muted hover:bg-sunken [&::-webkit-details-marker]:hidden"
@@ -52,7 +53,7 @@ export function SideNav({ sections, label, idPrefix }: { sections: NavSection[];
         return (
           <div key={section.id} className="flex flex-col gap-1">
             {section.label && (
-              <p id={headingId} className="px-2.5 text-xs font-semibold text-muted">
+              <p id={headingId} className="px-2.5 text-xs font-semibold text-muted group-has-[[data-wide]]/shell:hidden">
                 {section.label}
               </p>
             )}
