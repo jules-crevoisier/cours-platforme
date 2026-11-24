@@ -155,8 +155,8 @@ export default async function CoursePageView({ params }: PageProps<"/courses/[sl
         }
       />
 
-      {/* Mobile : sommaire repliable en haut */}
-      <details className="group border border-line md:hidden">
+      {/* < 1280 px : sommaire repliable en haut ; ≥ 1280 px : sommaire à droite, contenu centré */}
+      <details className="group border border-line xl:hidden">
         <summary className="flex min-h-11 cursor-pointer items-center gap-2 px-4 font-semibold list-none [&::-webkit-details-marker]:hidden">
           <Chevron />
           Sommaire
@@ -166,18 +166,24 @@ export default async function CoursePageView({ params }: PageProps<"/courses/[sl
         </nav>
       </details>
 
-      <div className="grid gap-8 md:grid-cols-[15rem_minmax(0,1fr)] 2xl:grid-cols-[16rem_minmax(0,1fr)_14rem]">
-        <aside className="hidden min-w-0 md:block">
-          <nav aria-labelledby="sommaire-titre" className="md:sticky md:top-4">
-            <h2 id="sommaire-titre" className="px-2 text-sm font-semibold text-muted">
-              Sommaire
-            </h2>
-            <ReadProgress progress={progress} className="mt-1 mb-2 px-2" />
-            <PageTree nodes={tree} slug={course.slug} currentId={page.id} readIds={readIds} />
-          </nav>
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,52rem)_minmax(0,1fr)]">
+        <aside className="hidden min-w-0 xl:col-start-3 xl:row-start-1 xl:block">
+          <div className="flex flex-col gap-6 xl:sticky xl:top-24 xl:ml-auto xl:max-h-[calc(100dvh-8rem)] xl:w-60 xl:overflow-y-auto">
+            <details open className="group text-sm">
+              <summary className="flex min-h-9 cursor-pointer list-none items-center justify-between gap-2 px-2 font-semibold text-muted [&::-webkit-details-marker]:hidden">
+                <span>Sommaire</span>
+                <Chevron />
+              </summary>
+              <nav aria-label="Sommaire du cours">
+                <ReadProgress progress={progress} className="mt-1 mb-2 px-2" />
+                <PageTree nodes={tree} slug={course.slug} currentId={page.id} readIds={readIds} />
+              </nav>
+            </details>
+            <PageOutline key={page.id} />
+          </div>
         </aside>
 
-        <div className="flex min-w-0 max-w-[64rem] flex-col gap-10">
+        <div className="flex min-w-0 flex-col gap-10 xl:col-start-2 xl:row-start-1">
           <div className="flex min-w-0 flex-col gap-6">
             {!canEdit && isEmpty ? (
               <EmptyState>Page vide.</EmptyState>
@@ -225,7 +231,6 @@ export default async function CoursePageView({ params }: PageProps<"/courses/[sl
           <QuestionsSection user={user} course={course} pageId={page.id} />
         </div>
 
-        <PageOutline key={page.id} />
       </div>
     </div>
   );
