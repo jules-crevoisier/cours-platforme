@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { StaffTodo } from "@/app/_todo/staff-todo";
 import { StudentTodo } from "@/app/_todo/student-todo";
@@ -5,6 +6,7 @@ import { StatusBadge } from "@/components/ui";
 import { db } from "@/lib/db";
 import { timeAgo } from "@/lib/format";
 import { isStaff } from "@/lib/permissions";
+import { loadResumeTarget } from "@/lib/page-progress";
 import { getCurrentUser, type CurrentUser } from "@/lib/session";
 
 const TZ = "Europe/Paris";
@@ -63,7 +65,10 @@ export default async function Home() {
 
   const now = new Date();
   const staff = isStaff(user);
-  const announcements = await loadAnnouncements(user, await mySaeIds(user, staff));
+  const [announcements, resume] = await Promise.all([
+    mySaeIds(user, staff).then((ids) => loadAnnouncements(user, ids)),
+    loadResumeTarget(user.id),
+  ]);
 
   const firstName = user.name.trim().split(/\s+/)[0] || user.name;
   const hour = Number(new Intl.DateTimeFormat("fr-FR", { timeZone: TZ, hour: "numeric", hourCycle: "h23" }).format(now));
@@ -74,6 +79,27 @@ export default async function Home() {
       <h1 className="text-3xl break-words md:text-4xl">
         {greeting} {firstName}
       </h1>
+
+      {resume && (
+        <section aria-labelledby="reprendre" className="flex max-w-3xl flex-col gap-4">
+          <h2 id="reprendre" className="text-xl">
+            Reprendre
+          </h2>
+          <div className="card flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 flex-col gap-1">
+              <span className="text-sm break-words text-muted">{resume.courseTitle}</span>
+              <span className="text-lg font-semibold break-words">{resume.pageTitle}</span>
+              <span className="text-sm text-muted">
+                {resume.progress.read} lue{resume.progress.read > 1 ? "s" : ""} sur {resume.progress.total}
+              </span>
+            </div>
+            <Link href={`/courses/${resume.slug}/pages/${resume.pageId}`} className="btn btn-primary shrink-0">
+              Reprendre
+              <span className="sr-only"> : {resume.pageTitle}</span>
+            </Link>
+          </div>
+        </section>
+      )}
 
       <div className="grid gap-12 xl:grid-cols-[minmax(0,1fr)_20rem] xl:gap-16">
         <section aria-labelledby="a-faire" className="flex min-w-0 flex-col gap-6">
