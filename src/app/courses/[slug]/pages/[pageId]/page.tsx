@@ -12,6 +12,7 @@ import { courseProgress } from "@/lib/progress";
 import { BlockEditor } from "@/components/editor";
 import { getPeertubeHosts } from "@/components/editor/peertube";
 import { FavoriteButton } from "@/components/favorite-button";
+import { PageOutline } from "@/components/page-outline";
 import { ReadButton } from "@/components/read-button";
 import { EmptyState, PageHeader } from "@/components/ui";
 import { buildPageTree, pageAncestors, readingOrder } from "../../../_lib/tree";
@@ -165,7 +166,7 @@ export default async function CoursePageView({ params }: PageProps<"/courses/[sl
         </nav>
       </details>
 
-      <div className="grid gap-8 md:grid-cols-[15rem_minmax(0,1fr)]">
+      <div className="grid gap-8 md:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[15rem_minmax(0,70ch)_13rem]">
         <aside className="hidden min-w-0 md:block">
           <nav aria-labelledby="sommaire-titre" className="md:sticky md:top-4">
             <h2 id="sommaire-titre" className="px-2 text-sm font-semibold text-muted">
@@ -223,6 +224,8 @@ export default async function CoursePageView({ params }: PageProps<"/courses/[sl
 
           <QuestionsSection user={user} course={course} pageId={page.id} />
         </div>
+
+        <PageOutline key={page.id} />
       </div>
     </div>
   );
