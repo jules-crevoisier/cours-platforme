@@ -11,6 +11,7 @@ import { SuggestionMenuController, useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
 import { createEditorSchema, type EditorPartialBlock } from "./schema";
 import { getSlashMenuItems } from "./slash-menu";
+import { shouldPasteAsMarkdown } from "@/lib/paste";
 
 export type SaveResult = { ok: true } | { ok: false; error: string };
 export type SaveContent = (content: unknown, markdown: string) => Promise<SaveResult>;
@@ -68,6 +69,25 @@ export default function BlockEditor({ initialContent, initialMarkdown, editable 
     dictionary: fr,
     initialContent: startBlocks,
     extensions: [syntaxHighlighter],
+    // Du Markdown brut (fichier .md, VS Code…) est converti en blocs ; un collage ne doit jamais faire planter la page
+    pasteHandler: ({ event, editor: ed, defaultPasteHandler }) => {
+      try {
+        const text = event.clipboardData?.getData("text/plain") ?? "";
+        const html = event.clipboardData?.getData("text/html") ?? "";
+        if (shouldPasteAsMarkdown(text, html)) {
+          event.preventDefault();
+          ed.pasteMarkdown(text);
+          return true;
+        }
+        return defaultPasteHandler();
+      } catch (e) {
+        console.error("Collage : conversion impossible, collage en texte brut", e);
+        const text = event.clipboardData?.getData("text/plain") ?? "";
+        event.preventDefault();
+        if (text) ed.pasteText(text);
+        return true;
+      }
+    },
   });
 
   // Ne pas perdre une frappe si on quitte la page avant l'autosave
@@ -79,19 +99,41 @@ export default function BlockEditor({ initialContent, initialMarkdown, editable 
     return () => window.removeEventListener("beforeunload", warn);
   }, [status]);
 
+  const inFlight = useRef(false);
+  const again = useRef(false);
+
+  // Une seule sauvegarde à la fois ; une erreur (réseau, serveur, proxy) s'affiche dans la barre d'état
+  // mais ne doit JAMAIS remonter à la page d'erreur : le contenu reste dans l'éditeur.
   function save() {
     if (!onSave) return;
+    if (inFlight.current) {
+      again.current = true;
+      return;
+    }
+    inFlight.current = true;
     setStatus("saving");
     const blocks = editor.document;
     const markdown = editor.blocksToMarkdownLossy(blocks);
     startTransition(async () => {
-      const res = await onSave(blocks, markdown);
-      if (res.ok) {
-        setStatus("saved");
-        setError(null);
-      } else {
+      try {
+        const res = await onSave(blocks, markdown);
+        if (res.ok) {
+          setStatus("saved");
+          setError(null);
+        } else {
+          setStatus("error");
+          setError(res.error);
+        }
+      } catch (e) {
+        console.error("Enregistrement échoué", e);
         setStatus("error");
-        setError(res.error);
+        setError("connexion au serveur impossible, nouvel essai à la prochaine modification");
+      } finally {
+        inFlight.current = false;
+        if (again.current) {
+          again.current = false;
+          timer.current = setTimeout(save, 500);
+        }
       }
     });
   }
