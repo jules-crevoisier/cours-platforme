@@ -128,11 +128,14 @@ model Course {
   saes          Sae[]
   /// Lien public en lecture seule (/p/course/<token>), null = désactivé
   shareToken    String?        @unique
+  /// Classement : S1..S6, SAE ou AUTRE (null = non classé)
+  semester      String?        @db.VarChar(8)
   announcements Announcement[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
   @@index([ownerId])
+  @@index([semester])
   @@fulltext([title, summary])
 }
 

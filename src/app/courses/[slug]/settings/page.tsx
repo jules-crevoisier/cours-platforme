@@ -108,7 +108,7 @@ export default async function CourseSettingsPage({ params, searchParams }: PageP
         {tab === "general" && (
           <CourseSettingsForm
             action={updateCourseSettings.bind(null, course.id)}
-            course={{ title: course.title, summary: course.summary, published: course.published }}
+            course={{ title: course.title, summary: course.summary, semester: course.semester, published: course.published }}
           />
         )}
 
