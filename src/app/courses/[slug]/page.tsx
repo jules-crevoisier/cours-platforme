@@ -7,10 +7,13 @@ import { assertAllowed, requireUser } from "@/lib/session";
 import { canEditCourse, canViewCourse, canViewSae } from "@/lib/permissions";
 import { formatDateTime, timeAgo } from "@/lib/format";
 import { isFavorite } from "@/lib/favorites";
+import { readPageIds } from "@/lib/page-progress";
+import { courseProgress, pageToResume } from "@/lib/progress";
 import { FavoriteButton } from "@/components/favorite-button";
 import { EmptyState, PageHeader, StatusBadge, Swatch } from "@/components/ui";
-import { buildPageTree } from "../_lib/tree";
+import { buildPageTree, readingOrder } from "../_lib/tree";
 import { PageTree } from "../_components/page-tree";
+import { ReadProgress } from "../_components/read-progress";
 import { TitleForm } from "../_components/title-form";
 import { createPage } from "../actions";
 
@@ -42,7 +45,7 @@ export default async function CoursePage({ params }: PageProps<"/courses/[slug]"
   const canEdit = canEditCourse(user, course);
   const tree = buildPageTree(course.pages);
 
-  const [saes, favorite, announcements] = await Promise.all([
+  const [saes, favorite, announcements, readIds] = await Promise.all([
     db.sae
       .findMany({
         where: { courseId: course.id },
@@ -57,7 +60,11 @@ export default async function CoursePage({ params }: PageProps<"/courses/[slug]"
       take: 5,
       select: { id: true, title: true, body: true, pinned: true, createdAt: true, author: { select: { name: true } } },
     }),
+    readPageIds(user.id, course.id),
   ]);
+  const order = readingOrder(tree);
+  const progress = courseProgress(order.map((p) => p.id), readIds);
+  const resume = pageToResume(order, readIds);
 
   return (
     <div className="flex flex-col gap-10">
@@ -116,11 +123,22 @@ export default async function CoursePage({ params }: PageProps<"/courses/[slug]"
         <h2 id="sommaire" className="text-xl">
           Sommaire
         </h2>
+        {tree.length > 0 && (
+          <div className="flex max-w-prose flex-wrap items-center justify-between gap-3">
+            <ReadProgress progress={progress} />
+            {resume && (
+              <Link href={`/courses/${course.slug}/pages/${resume.id}`} className="btn btn-primary">
+                {progress.read === 0 ? "Commencer" : "Reprendre"}
+                <span className="sr-only"> : {resume.title}</span>
+              </Link>
+            )}
+          </div>
+        )}
         {tree.length === 0 ? (
           <EmptyState>Aucune page.</EmptyState>
         ) : (
           <nav aria-label="Sommaire du cours" className="-mx-2 max-w-prose">
-            <PageTree nodes={tree} slug={course.slug} />
+            <PageTree nodes={tree} slug={course.slug} readIds={readIds} />
           </nav>
         )}
         {canEdit && (

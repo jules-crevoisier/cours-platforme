@@ -20,6 +20,24 @@ function More({ shown, total }: { shown: number; total: number }) {
   return <p className="text-sm text-muted">+ {total - shown} autres</p>;
 }
 
+/** Compteurs en tête de liste : un chiffre par section non vide, lien vers la section */
+function Counters({ items }: { items: { id: string; label: string; count: number }[] }) {
+  const shown = items.filter((i) => i.count > 0);
+  if (shown.length < 2) return null;
+  return (
+    <ul className="flex flex-wrap gap-3">
+      {shown.map((i) => (
+        <li key={i.id} className="min-w-40 flex-1 border border-line bg-surface sm:max-w-56">
+          <a href={`#${i.id}-title`} className="flex min-h-11 flex-col gap-0.5 p-4 hover:bg-sunken">
+            <span className="text-2xl font-bold">{i.count}</span>
+            <span className="text-sm text-muted">{i.label}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 /** Équipe pédagogique : seules les sections qui contiennent quelque chose sont affichées */
 export async function StaffTodo({ userId, now }: { userId: string; now: Date }) {
   const data = await loadStaffTodo(userId, now);
@@ -44,6 +62,14 @@ export async function StaffTodo({ userId, now }: { userId: string; now: Date }) 
 
   return (
     <div className="flex flex-col gap-8">
+      <Counters
+        items={[
+          { id: "a-corriger", label: "À corriger", count: data.toReviewTotal },
+          { id: "questions", label: "Questions sans réponse", count: data.questionCount },
+          { id: "liens", label: "Liens à problème", count: data.linkCount },
+          { id: "vitrine", label: "Vitrine à valider", count: data.showcaseCount },
+        ]}
+      />
       {data.toReview.length > 0 && (
         <TodoSection id="a-corriger" title={`À corriger (${data.toReviewTotal})`}>
           {data.toReview.map((r) => (

@@ -30,13 +30,13 @@ export async function AppShell({ user, theme, children }: { user: CurrentUser; t
   return (
     <div className="min-h-[100dvh] lg:pl-60 print:pl-0">
       {/* ── Barre latérale (≥ 1024 px) ── */}
-      <div className="shell-sidebar fixed inset-y-0 left-0 z-20 hidden w-60 flex-col border-r border-line bg-sunken lg:flex">
+      <div className="shell-sidebar fixed inset-y-0 left-0 z-20 hidden w-60 flex-col border-r border-line bg-surface lg:flex">
         <div className="flex h-16 shrink-0 items-center gap-1 pr-2 pl-4">
           <Link href="/" className="mr-auto flex min-h-11 items-center">
             <Wordmark />
             <span className="sr-only"> — accueil</span>
           </Link>
-          <NotificationBell count={unread} className="hover:bg-line/60" />
+          <NotificationBell count={unread} className="hover:bg-sunken" />
         </div>
         <div className="flex flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-3 pt-1 pb-6">
           <SearchField />
@@ -47,7 +47,7 @@ export async function AppShell({ user, theme, children }: { user: CurrentUser; t
           <button
             type="button"
             popoverTarget="menu-utilisateur"
-            className="flex min-h-12 w-full cursor-pointer items-center gap-2.5 px-2 text-left transition-colors hover:bg-line/60"
+            className="flex min-h-12 w-full cursor-pointer items-center gap-2.5 px-2 text-left transition-colors hover:bg-sunken"
           >
             <Avatar name={user.name} />
             <span className="flex min-w-0 flex-1 flex-col">
@@ -133,7 +133,7 @@ function Avatar({ name }: { name: string }) {
   return (
     <span
       aria-hidden="true"
-      className="flex size-8 shrink-0 items-center justify-center bg-ink text-xs font-bold text-bg"
+      className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent text-xs font-bold"
     >
       {initials(name)}
     </span>

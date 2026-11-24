@@ -170,6 +170,21 @@ export function CompetenceRadar({
               )}
             </>
           )}
+          {/* Marqueurs enseignant au-dessus : restent visibles quand une seule compétence est positionnée (polygone réduit à un trait) */}
+          {hasTeacher &&
+            teacherPoints.map((p, i) =>
+              scores[i].teacher != null ? (
+                <rect
+                  key={`teacher-${i}`}
+                  x={p.x - 3.5}
+                  y={p.y - 3.5}
+                  width={7}
+                  height={7}
+                  className="fill-surface stroke-ink"
+                  strokeWidth={1.5}
+                />
+              ) : null,
+            )}
 
           {/* Étiquettes des axes : code de compétence + carré de couleur */}
           {labelPoints.map((p, i) => {
@@ -256,6 +271,7 @@ export function CompetenceRadar({
                     className="fill-ink/10 stroke-muted"
                     strokeDasharray="4 3"
                   />
+                  <rect x="9" y="3" width="6" height="6" className="fill-surface stroke-ink" strokeWidth={1.5} />
                 </svg>
                 Enseignant
               </li>

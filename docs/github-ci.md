@@ -1,13 +1,13 @@
 # Build GitHub Actions → déploiement Dokploy
 
-`.github/workflows/docker.yml` construit `app` et `migrate` à chaque push sur `main` / `test` et les publie sur ghcr.io (aucun secret ni variable à créer : le jeton GitHub intégré suffit). Dokploy ne fait que tirer les images.
+`.github/workflows/docker.yml` construit `app` et `migrate` à chaque push sur `main` / `develop` et les publie sur ghcr.io (aucun secret ni variable à créer : le jeton GitHub intégré suffit). Dokploy ne fait que tirer les images.
 
 | Branche | Compose Dokploy | Images | Migrations |
 |---|---|---|---|
 | `main` | `docker-compose.registry.yml` | `:main` | `migrator` (sans démo) |
-| `test` | `docker-compose.registry.test.yml` | `:test` | `seeder` (avec démo) |
+| `develop` | `docker-compose.registry.test.yml` | `:develop` | `seeder` (avec démo) |
 
-**Prod = `main`** (https://cours.srko.fr). `test` ne sert plus qu'à la recette avec données de démo : on y développe, puis on fusionne `test` dans `main` par PR pour livrer. Ne jamais mettre `docker-compose.yml` (qui compile sur le serveur) dans Dokploy.
+**Prod = `main`** (https://cours.srko.fr). `develop` sert à la recette avec données de démo. Procédure de travail : [GITFLOW.md](GITFLOW.md). Ne jamais mettre `docker-compose.yml` (qui compile sur le serveur) dans Dokploy.
 
 ## Côté Dokploy (une seule fois)
 - Changer le *Compose path* de chaque application vers le fichier ci-dessus.

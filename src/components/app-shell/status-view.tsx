@@ -14,7 +14,7 @@ export function StatusView({
 }) {
   return (
     <div className="flex max-w-2xl flex-col gap-4 py-4 md:py-10">
-      <p aria-hidden="true" className="text-6xl leading-none font-bold text-accent [font-stretch:125%]">
+      <p aria-hidden="true" className="text-6xl leading-none font-bold text-accent">
         {code}
       </p>
       <h1 className="text-2xl md:text-3xl">{title}</h1>

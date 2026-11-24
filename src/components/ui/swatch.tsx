@@ -30,7 +30,7 @@ export function Swatch({ seed, text, size = "md", className }: { seed: string; t
   return (
     <span
       aria-hidden="true"
-      className={cx("flex shrink-0 items-center justify-center font-bold tracking-tight text-bg [font-stretch:115%]", SIZE[size], className)}
+      className={cx("flex shrink-0 items-center justify-center rounded-xl font-bold tracking-tight text-bg", SIZE[size], className)}
       style={{ background: COLORS[hash(seed) % COLORS.length] }}
     >
       {initials(text)}

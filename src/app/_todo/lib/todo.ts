@@ -34,6 +34,8 @@ export type MilestoneProgressInput = {
   hasCriteria: boolean;
   requiresDepositUrl: boolean;
   peerReviewEnabled: boolean;
+  /** Évaluation entre pairs encore modifiable (délai de grâce après l'échéance non dépassé) */
+  peerReviewOpen: boolean;
   assessmentStatus: AssessmentStatus | null;
   depositCount: number;
   /** Coéquipiers (sans moi) */
@@ -45,7 +47,7 @@ export type MilestoneProgressInput = {
 export type MilestoneProgress = {
   assessmentDone: boolean;
   depositDone: boolean;
-  /** Nombre de coéquipiers restant à évaluer (0 si l'évaluation entre pairs est désactivée) */
+  /** Nombre de coéquipiers restant à évaluer (0 si l'évaluation entre pairs est désactivée ou fermée) */
   peerPending: number;
   done: boolean;
 };
@@ -55,7 +57,7 @@ export function milestoneProgress(i: MilestoneProgressInput): MilestoneProgress 
   const assessmentDone = !i.hasCriteria || i.assessmentStatus === "SUBMITTED";
   const depositDone = !i.requiresDepositUrl || i.depositCount > 0;
   const reviewed = new Set(i.reviewedIds);
-  const peerPending = i.peerReviewEnabled ? i.teammateIds.filter((id) => !reviewed.has(id)).length : 0;
+  const peerPending = i.peerReviewEnabled && i.peerReviewOpen ? i.teammateIds.filter((id) => !reviewed.has(id)).length : 0;
   return { assessmentDone, depositDone, peerPending, done: assessmentDone && depositDone && peerPending === 0 };
 }
 

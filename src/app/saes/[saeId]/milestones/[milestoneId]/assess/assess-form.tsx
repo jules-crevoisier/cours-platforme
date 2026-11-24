@@ -44,7 +44,7 @@ export function AssessForm({ action, criteria, existingItems, reflection }: Prop
             const existing = existingItems[criterion.id];
             const legendId = `criterion-${criterion.id}`;
             return (
-              <li key={criterion.id} className="py-6 first:pt-0">
+              <li key={criterion.id} className="py-6 first:pt-0 last:pb-0">
                 <fieldset aria-describedby={criterion.description ? `${legendId}-desc` : undefined}>
                   <legend className="float-left w-full">
                     {criterion.code && <span className="block text-sm text-muted">{criterion.code}</span>}

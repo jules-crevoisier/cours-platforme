@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { after } from "next/server";
 import { db } from "@/lib/db";
+import { markNotificationsReadByLink } from "@/lib/notify";
 import { assertAllowed, requireUser } from "@/lib/session";
 import {
   canCommentAssessment,
@@ -74,6 +76,10 @@ export default async function AssessmentPage({ params }: PageProps<"/assessments
   const { milestone } = assessment;
   const { sae } = milestone;
   assertAllowed(canViewAssessment(user, assessment, sae));
+
+  // Ouvrir le retour (ou les commentaires) vaut lecture des notifications qui y mènent
+  const userId = user.id;
+  after(() => markNotificationsReadByLink(userId, `/assessments/${assessment.id}`));
 
   const isManager = canManageSae(user, sae);
   const canEdit = canEditAssessment(user, assessment);

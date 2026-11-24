@@ -7,15 +7,20 @@ import { assertAllowed, requireUser } from "@/lib/session";
 import { canEditCourse, canViewCourse } from "@/lib/permissions";
 import { formatDateTime, timeAgo } from "@/lib/format";
 import { isFavorite } from "@/lib/favorites";
+import { readPageIds } from "@/lib/page-progress";
+import { courseProgress } from "@/lib/progress";
 import { BlockEditor } from "@/components/editor";
 import { getPeertubeHosts } from "@/components/editor/peertube";
 import { FavoriteButton } from "@/components/favorite-button";
+import { PageOutline } from "@/components/page-outline";
+import { ReadButton } from "@/components/read-button";
 import { EmptyState, PageHeader } from "@/components/ui";
 import { buildPageTree, pageAncestors, readingOrder } from "../../../_lib/tree";
 import { PageTree } from "../../../_components/page-tree";
 import { TitleForm } from "../../../_components/title-form";
 import { ActionButton } from "../../../_components/action-button";
 import { Chevron } from "../../../_components/chevron";
+import { ReadProgress } from "../../../_components/read-progress";
 import { QuestionsSection } from "../../../_components/questions-section";
 import { createPage, deletePage, movePage, renamePage, savePageContent } from "../../../actions";
 
@@ -50,7 +55,7 @@ export default async function CoursePageView({ params }: PageProps<"/courses/[sl
   if (!page || page.courseId !== course.id) notFound();
 
   const canEdit = canEditCourse(user, course);
-  const favorite = await isFavorite(user.id, "PAGE", page.id);
+  const [favorite, readIds] = await Promise.all([isFavorite(user.id, "PAGE", page.id), readPageIds(user.id, course.id)]);
   const tree = buildPageTree(course.pages);
   const ancestors = pageAncestors(course.pages, page.id);
   const siblings = course.pages
@@ -62,6 +67,7 @@ export default async function CoursePageView({ params }: PageProps<"/courses/[sl
   const position = order.findIndex((p) => p.id === page.id);
   const prev = position > 0 ? order[position - 1] : undefined;
   const next = position >= 0 && position < order.length - 1 ? order[position + 1] : undefined;
+  const progress = courseProgress(order.map((p) => p.id), readIds);
   const isEmpty = !page.content && !page.markdown;
   const courseHref = `/courses/${course.slug}`;
 
@@ -97,7 +103,7 @@ export default async function CoursePageView({ params }: PageProps<"/courses/[sl
                     Plus d&apos;options
                     <Chevron />
                   </summary>
-                  <div className="mt-2 flex flex-col gap-5 border border-ink bg-surface p-4 md:absolute md:right-0 md:z-20 md:w-[26rem]">
+                  <div className="mt-2 flex flex-col gap-5 rounded-2xl border border-line bg-surface p-4 shadow-[var(--shadow-pop)] md:absolute md:right-0 md:z-20 md:w-[26rem]">
                     <TitleForm
                       action={renamePage.bind(null, page.id)}
                       label="Titre de la page"
@@ -156,17 +162,18 @@ export default async function CoursePageView({ params }: PageProps<"/courses/[sl
           Sommaire
         </summary>
         <nav aria-label="Sommaire du cours" className="border-t border-line p-2">
-          <PageTree nodes={tree} slug={course.slug} currentId={page.id} />
+          <PageTree nodes={tree} slug={course.slug} currentId={page.id} readIds={readIds} />
         </nav>
       </details>
 
-      <div className="grid gap-8 md:grid-cols-[15rem_minmax(0,1fr)]">
+      <div className="grid gap-8 md:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[15rem_minmax(0,70ch)_13rem]">
         <aside className="hidden min-w-0 md:block">
           <nav aria-labelledby="sommaire-titre" className="md:sticky md:top-4">
-            <h2 id="sommaire-titre" className="mb-2 px-2 text-sm font-semibold text-muted">
+            <h2 id="sommaire-titre" className="px-2 text-sm font-semibold text-muted">
               Sommaire
             </h2>
-            <PageTree nodes={tree} slug={course.slug} currentId={page.id} />
+            <ReadProgress progress={progress} className="mt-1 mb-2 px-2" />
+            <PageTree nodes={tree} slug={course.slug} currentId={page.id} readIds={readIds} />
           </nav>
         </aside>
 
@@ -184,6 +191,10 @@ export default async function CoursePageView({ params }: PageProps<"/courses/[sl
                 peertubeHosts={getPeertubeHosts()}
               />
             )}
+
+            <div className="flex">
+              <ReadButton key={page.id} pageId={page.id} initial={readIds.has(page.id)} />
+            </div>
 
             {(prev || next) && (
               <nav aria-label="Pages voisines" className="flex flex-col gap-2 sm:flex-row sm:justify-between">
@@ -213,6 +224,8 @@ export default async function CoursePageView({ params }: PageProps<"/courses/[sl
 
           <QuestionsSection user={user} course={course} pageId={page.id} />
         </div>
+
+        <PageOutline key={page.id} />
       </div>
     </div>
   );
