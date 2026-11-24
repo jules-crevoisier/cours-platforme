@@ -3,20 +3,20 @@ import type { IconName } from "@/components/ui/icon";
 import type { Role } from "@/lib/permissions";
 
 export type NavItem = { href: string; label: string; icon: IconName };
-export type NavSection = { id: string; label?: string; items: NavItem[] };
+export type NavSection = { id: string; label?: string; items: NavItem[]; collapsible?: boolean };
 
 const HOME: NavItem = { href: "/", label: "Accueil", icon: "home" };
 const COURSES: NavItem = { href: "/courses", label: "Cours", icon: "book" };
 const SAES: NavItem = { href: "/saes", label: "SAÉ", icon: "track" };
-const SHOWCASE: NavItem = { href: "/vitrine", label: "Vitrine", icon: "gallery" };
 
 /** Navigation principale : barre latérale (≥ 1024 px) et barre d'onglets basse (< 1024 px) */
-export const MAIN_ITEMS: NavItem[] = [HOME, COURSES, SAES, SHOWCASE];
+export const MAIN_ITEMS: NavItem[] = [HOME, COURSES, SAES];
 
 /**
  * Sections de la barre latérale selon le rôle.
- * Tout le monde : Accueil, Cours, SAÉ, Vitrine. Le reste (profil, compétences, paramètres) est dans le menu du compte.
- * Équipe pédagogique : + Enseignement. Administrateur : + Administration.
+ * Tout le monde : Accueil, Cours, SAÉ (la lecture au centre). Le secondaire (vitrine, profil, compétences,
+ * paramètres, banque de commentaires) est dans le menu du compte.
+ * Équipe pédagogique : + Enseignement (Étudiants, Annonces). Administrateur : + Administration (repliée).
  */
 export function navSections(role: Role): NavSection[] {
   const staff = role === "ADMIN" || role === "TEACHER";
@@ -28,7 +28,6 @@ export function navSections(role: Role): NavSection[] {
       items: [
         { href: "/students", label: "Étudiants", icon: "users" },
         { href: "/admin/announcements", label: "Annonces", icon: "megaphone" },
-        { href: "/me/comment-bank", label: "Banque de commentaires", icon: "message" },
       ],
     });
   }
@@ -36,11 +35,11 @@ export function navSections(role: Role): NavSection[] {
     sections.push({
       id: "admin",
       label: "Administration",
+      collapsible: true,
       items: [
         { href: "/admin/users", label: "Utilisateurs", icon: "user" },
         { href: "/admin/cohorts", label: "Promos", icon: "layers" },
         { href: "/admin/referentiel", label: "Référentiel", icon: "grid" },
-        { href: "/admin/referentiel/couverture", label: "Couverture AC", icon: "grid" },
       ],
     });
   }
@@ -58,6 +57,8 @@ export function accountItems(role: Role): NavItem[] {
           { href: "/me/competences", label: "Mes compétences", icon: "radar" } satisfies NavItem,
           { href: "/me/portfolio", label: "Portfolio", icon: "folder" } satisfies NavItem,
         ]),
+    { href: "/vitrine", label: "Vitrine", icon: "gallery" },
+    ...(staff ? [{ href: "/me/comment-bank", label: "Banque de commentaires", icon: "message" } satisfies NavItem] : []),
     { href: "/me/settings", label: "Paramètres", icon: "sliders" },
     { href: "/aide", label: "Aide", icon: "help" },
   ];

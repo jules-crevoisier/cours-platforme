@@ -117,7 +117,7 @@ export default function BlockEditor({ initialContent, initialMarkdown, editable 
           {error ? ` : ${error}` : ""}
         </p>
       )}
-      <div className="py-4">
+      <div className={canEdit ? "py-4" : "py-6 md:py-8"}>
         <BlockNoteView
           editor={editor}
           editable={canEdit}
