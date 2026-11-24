@@ -17,3 +17,10 @@
 .bn-root.cours-editor video {
   max-width: 100%;
 }
+
+/* Mobile : BlockNote réserve ~54 px à gauche (poignées de bloc) — inutile en lecture, on rend la place au texte */
+@media (max-width: 47.99rem) {
+  .bn-root.cours-editor .bn-editor {
+    padding-inline: 0.75rem;
+  }
+}
