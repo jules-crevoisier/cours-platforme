@@ -322,15 +322,21 @@ export async function savePageContent(pageId: string, content: unknown, markdown
   if (!page) return { ok: false, error: "Page introuvable." };
   if (!canEditCourse(user, page.course)) return { ok: false, error: "Vous ne pouvez pas modifier ce cours." };
 
-  await snapshotPageBeforeWrite(page.id, user.id);
-  await db.page.update({
-    where: { id: page.id },
-    data: {
-      content: parsed.data.content as Prisma.InputJsonValue,
-      markdown: parsed.data.markdown,
-      updatedById: user.id,
-    },
-  });
+  try {
+    await snapshotPageBeforeWrite(page.id, user.id);
+    await db.page.update({
+      where: { id: page.id },
+      data: {
+        content: parsed.data.content as Prisma.InputJsonValue,
+        markdown: parsed.data.markdown,
+        updatedById: user.id,
+      },
+    });
+  } catch (e) {
+    // Jamais d'exception vers le client : l'éditeur affiche l'erreur sans perdre le contenu
+    console.error("savePageContent", e);
+    return { ok: false, error: "Enregistrement impossible, réessayez dans un instant." };
+  }
   revalidatePath(`/courses/${page.course.slug}/pages/${page.id}`);
   return { ok: true };
 }
