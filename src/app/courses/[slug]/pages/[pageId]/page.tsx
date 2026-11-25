@@ -95,11 +95,11 @@ export default async function CoursePageView({ params }: PageProps<"/courses/[sl
             <FavoriteButton kind="PAGE" targetId={page.id} initial={favorite} label="cette page" />
             {canEdit && (
               <>
-                <Link href={`${courseHref}/pages/${page.id}/history`} className="btn">
+                <Link href={`${courseHref}/pages/${page.id}/history`} className="btn btn-sm">
                   Historique
                 </Link>
                 <details className="group relative open:basis-full md:open:basis-auto">
-                  <summary className="btn list-none [&::-webkit-details-marker]:hidden">
+                  <summary className="btn btn-sm list-none [&::-webkit-details-marker]:hidden">
                     Plus d&apos;options
                     <Chevron />
                   </summary>
@@ -169,9 +169,10 @@ export default async function CoursePageView({ params }: PageProps<"/courses/[sl
       <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,52rem)_minmax(13rem,1fr)]">
         <aside className="hidden min-w-0 xl:col-start-3 xl:row-start-1 xl:block">
           <div className="flex flex-col gap-6 xl:sticky xl:top-24 xl:ml-auto xl:max-h-[calc(100dvh-8rem)] xl:w-full xl:max-w-60 xl:overflow-y-auto">
-            <details open className="group text-sm">
-              <summary className="flex min-h-9 cursor-pointer list-none items-center justify-between gap-2 px-2 font-semibold text-muted [&::-webkit-details-marker]:hidden">
-                <span>Sommaire</span>
+            <PageOutline key={page.id} />
+            <details className="group text-sm">
+              <summary className="flex min-h-9 cursor-pointer list-none items-center justify-between gap-2 px-3 font-semibold text-muted [&::-webkit-details-marker]:hidden">
+                <span>Pages du cours</span>
                 <Chevron />
               </summary>
               <nav aria-label="Sommaire du cours">
@@ -179,7 +180,6 @@ export default async function CoursePageView({ params }: PageProps<"/courses/[sl
                 <PageTree nodes={tree} slug={course.slug} currentId={page.id} readIds={readIds} />
               </nav>
             </details>
-            <PageOutline key={page.id} />
           </div>
         </aside>
 
