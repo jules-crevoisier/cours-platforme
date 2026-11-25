@@ -28,7 +28,7 @@ export function PageHeader({ title, breadcrumbs, meta, actions, className }: Pro
     <header className={cx("flex flex-col gap-4 md:flex-row md:items-end md:justify-between", className)}>
       <div className="flex min-w-0 flex-col gap-2">
         {breadcrumbs && breadcrumbs.length > 0 && <Breadcrumbs items={breadcrumbs} />}
-        <h1 className="text-2xl break-words md:text-3xl">{title}</h1>
+        <h1 className="text-2xl break-words">{title}</h1>
         {meta && <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">{meta}</div>}
       </div>
       {actions && <div className="flex flex-wrap gap-2 md:shrink-0 md:justify-end">{actions}</div>}
