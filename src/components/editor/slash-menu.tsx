@@ -2,6 +2,7 @@
 
 import { insertOrUpdateBlockForSlashMenu } from "@blocknote/core/extensions";
 import { getDefaultReactSlashMenuItems, type DefaultReactSuggestionItem } from "@blocknote/react";
+import { CALLOUT_LABELS, CALLOUT_TYPES, type CalloutType } from "@/lib/bookstack-blocks";
 import type { EditorInstance } from "./schema";
 
 function EmbedIcon() {
@@ -23,10 +24,36 @@ function EmbedIcon() {
   );
 }
 
-/** Menu « / » : tous les éléments par défaut + « Intégration », rangée avec les médias */
+function CalloutIcon({ type }: { type: CalloutType }) {
+  return <span aria-hidden="true" className={`callout-swatch ${type}`} />;
+}
+
+const CALLOUT_ALIASES: Record<CalloutType, string[]> = {
+  info: ["info", "note", "remarque"],
+  success: ["succes", "succès", "astuce", "tip", "ok"],
+  warning: ["avertissement", "attention", "warning"],
+  danger: ["danger", "erreur", "important", "caution"],
+};
+
+/** Menu « / » : tous les éléments par défaut + encadrés BookStack (après « Citation ») + « Intégration » (médias) */
 export function getSlashMenuItems(editor: EditorInstance): DefaultReactSuggestionItem[] {
   const items = getDefaultReactSlashMenuItems(editor);
   const mediaGroup = editor.dictionary.slash_menu.video.group;
+  const quoteGroup = editor.dictionary.slash_menu.quote.group;
+
+  const calloutItems: DefaultReactSuggestionItem[] = CALLOUT_TYPES.map((type) => ({
+    title: `Encadré ${CALLOUT_LABELS[type].toLowerCase()}`,
+    subtext: "Bloc mis en évidence, comme dans BookStack",
+    aliases: ["encadre", "encadré", "callout", "alerte", ...CALLOUT_ALIASES[type]],
+    group: quoteGroup,
+    icon: <CalloutIcon type={type} />,
+    onItemClick: () => {
+      insertOrUpdateBlockForSlashMenu(editor, { type: "callout", props: { type } });
+    },
+  }));
+  const quoteIndex = items.findIndex((i) => i.title === editor.dictionary.slash_menu.quote.title);
+  if (quoteIndex === -1) items.push(...calloutItems);
+  else items.splice(quoteIndex + 1, 0, ...calloutItems);
 
   const embedItem: DefaultReactSuggestionItem = {
     title: "Intégration (Figma, YouTube, CodePen…)",

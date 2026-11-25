@@ -196,6 +196,12 @@ export function createEmbedBlock(peertubeHosts: string[]) {
           />
         );
       },
+      // Collage d'une page BookStack (ou de tout HTML) : un iframe d'un service autorisé devient une intégration
+      parse(el) {
+        if (el.tagName !== "IFRAME") return undefined;
+        const src = el.getAttribute("src") ?? "";
+        return src && toEmbed(src, peertubeHosts) ? { url: src } : undefined;
+      },
       // Export HTML/Markdown (copier-coller, recherche) : un simple lien
       toExternalHTML: function EmbedBlockExport({ block }) {
         const link = block.props.url ? safeHttpUrl(block.props.url) : null;

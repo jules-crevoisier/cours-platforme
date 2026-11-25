@@ -1,6 +1,7 @@
 // Import BookStack → plateforme : fonctions pures (aucun accès réseau ni base), testables.
 // Utilisées par `scripts/import-bookstack.ts`.
 import { slugify } from "./content";
+import { calloutMarker, calloutTypeFromClass } from "./bookstack-blocks";
 
 export type BsBook = { id: number; name: string; slug: string; description?: string | null; updated_at?: string };
 export type BsShelf = { id: number; name: string; books: { id: number }[] };
@@ -142,10 +143,25 @@ export function htmlToMarkdown(html: string): string {
     /<iframe\s[^>]*src="(https?:[^"]+)"[^>]*>(?:[\s\S]*?<\/iframe>)?/gi,
     (_, src: string) => `\n\n[Intégration](${src})\n\n`,
   );
+  // Encadrés BookStack (`<p class="callout warning">`) → alerte Markdown « > [!WARNING] », relue par l'éditeur
   s = s.replace(
-    /<pre[^>]*>\s*(?:<code[^>]*>)?([\s\S]*?)(?:<\/code>)?\s*<\/pre>/gi,
-    (_, c: string) => "\n\n```\n" + decode(c.replace(/<[^>]+>/g, "")).replace(/\n+$/, "") + "\n```\n\n",
+    /<(p|div)\b[^>]*\bclass="([^"]*\bcallout\b[^"]*)"[^>]*>([\s\S]*?)<\/\1>/gi,
+    (_, _tag: string, cls: string, inner: string) => {
+      const body = htmlToMarkdown(inner);
+      if (!body) return "";
+      const lines = body.split("\n").map((l) => (l ? `> ${l}` : ">"));
+      return `\n\n> ${calloutMarker(calloutTypeFromClass(cls) ?? "info")}\n${lines.join("\n")}\n\n`;
+    },
   );
+  s = s.replace(
+    /<pre[^>]*>\s*(?:<code([^>]*)>)?([\s\S]*?)(?:<\/code>)?\s*<\/pre>/gi,
+    (_, attrs: string | undefined, c: string) => {
+      // BookStack : <pre><code class="language-php"> → bloc de code coloré dans le bon langage
+      const lang = attrs?.match(/language-([\w+#-]+)/i)?.[1]?.toLowerCase() ?? "";
+      return "\n\n```" + lang + "\n" + decode(c.replace(/<[^>]+>/g, "")).replace(/\n+$/, "") + "\n```\n\n";
+    },
+  );
+  s = s.replace(/<hr\b[^>]*>/gi, "\n\n---\n\n");
   s = s.replace(
     /<h([1-6])[^>]*>([\s\S]*?)<\/h\1>/gi,
     (_, n: string, c: string) => `\n\n${"#".repeat(Number(n))} ${c.replace(/<[^>]+>/g, "").trim()}\n\n`,
@@ -161,7 +177,13 @@ export function htmlToMarkdown(html: string): string {
     const alt = tag.match(/alt="([^"]*)"/i)?.[1] ?? "";
     return /^https?:/i.test(src) ? `![${alt}](${src})` : "";
   });
-  s = s.replace(/<li[^>]*>([\s\S]*?)<\/li>/gi, (_, c: string) => `\n- ${c.replace(/<\/?(ul|ol)[^>]*>/gi, "").replace(/\s+/g, " ").trim()}`);
+  const listItem = (marker: string) => (_: string, c: string) =>
+    `\n${marker} ${c.replace(/<\/?(ul|ol)[^>]*>/gi, "").replace(/\s+/g, " ").trim()}`;
+  // Listes numérotées (sans liste imbriquée) avant les puces
+  s = s.replace(/<ol\b[^>]*>((?:(?!<[uo]l\b)[\s\S])*?)<\/ol>/gi, (_, inner: string) =>
+    `\n${inner.replace(/<li[^>]*>([\s\S]*?)<\/li>/gi, listItem("1."))}\n`,
+  );
+  s = s.replace(/<li[^>]*>([\s\S]*?)<\/li>/gi, listItem("-"));
   s = s.replace(/<\/?(ul|ol)[^>]*>/gi, "\n").replace(/<br\s*\/?>/gi, "\n");
   s = s.replace(
     /<blockquote[^>]*>([\s\S]*?)<\/blockquote>/gi,

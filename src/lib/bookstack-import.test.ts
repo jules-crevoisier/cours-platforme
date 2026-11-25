@@ -135,3 +135,25 @@ describe("htmlToMarkdown — tableaux et intégrations", () => {
     expect(htmlToMarkdown('<img src="https://docs.x.fr/uploads/a.png" alt="capture">')).toBe("![capture](https://docs.x.fr/uploads/a.png)");
   });
 });
+
+describe("htmlToMarkdown — encadrés BookStack", () => {
+  it("convertit un callout en alerte Markdown en gardant son type et sa mise en forme", () => {
+    const md = htmlToMarkdown('<p class="callout warning">Rendu <strong>avant</strong> vendredi<br>sinon pénalité</p>');
+    expect(md).toBe("> [!WARNING]\n> Rendu **avant** vendredi\n> sinon pénalité");
+  });
+  it("un callout sans type connu devient une information", () => {
+    expect(htmlToMarkdown('<div class="callout">Note</div>')).toBe("> [!INFO]\n> Note");
+  });
+});
+
+describe("htmlToMarkdown — listes numérotées, séparateurs, langage du code", () => {
+  it("garde la numérotation d'une liste ordonnée", () => {
+    expect(htmlToMarkdown("<ol><li>Un</li><li>Deux</li></ol><ul><li>Puce</li></ul>")).toBe("1. Un\n1. Deux\n\n- Puce");
+  });
+  it("convertit <hr> en séparateur", () => {
+    expect(htmlToMarkdown("<p>A</p><hr><p>B</p>")).toBe("A\n\n---\n\nB");
+  });
+  it("garde le langage d'un bloc de code BookStack", () => {
+    expect(htmlToMarkdown('<pre><code class="language-php">echo 1;</code></pre>')).toBe("```php\necho 1;\n```");
+  });
+});

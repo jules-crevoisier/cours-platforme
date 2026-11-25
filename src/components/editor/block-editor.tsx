@@ -12,6 +12,7 @@ import { BlockNoteView } from "@blocknote/mantine";
 import { createEditorSchema, type EditorPartialBlock } from "./schema";
 import { getSlashMenuItems } from "./slash-menu";
 import { shouldPasteAsMarkdown } from "@/lib/paste";
+import { hasCalloutMarkdown, liftBookStackBlocks, lowerCalloutsForMarkdown } from "@/lib/bookstack-blocks";
 
 export type SaveResult = { ok: true } | { ok: false; error: string };
 export type SaveContent = (content: unknown, markdown: string) => Promise<SaveResult>;
@@ -60,7 +61,9 @@ export default function BlockEditor({ initialContent, initialMarkdown, editable 
   const [startBlocks] = useState<EditorPartialBlock[] | undefined>(() => {
     if (Array.isArray(initialContent) && initialContent.length > 0) return initialContent as EditorPartialBlock[];
     if (!initialMarkdown) return undefined;
-    const blocks = BlockNoteEditor.create({ schema }).tryParseMarkdownToBlocks(initialMarkdown);
+    const parsed = BlockNoteEditor.create({ schema }).tryParseMarkdownToBlocks(initialMarkdown);
+    // « > [!INFO] » → encadré, lien « Intégration » → iframe : ce que le Markdown d'un import BookStack ne dit pas
+    const blocks = liftBookStackBlocks(parsed, peertubeHosts) as EditorPartialBlock[];
     return blocks.length > 0 ? blocks : undefined;
   });
 
@@ -78,7 +81,13 @@ export default function BlockEditor({ initialContent, initialMarkdown, editable 
         const html = event.clipboardData?.getData("text/html") ?? "";
         if (shouldPasteAsMarkdown(text, html)) {
           event.preventDefault();
-          ed.pasteMarkdown(text);
+          if (hasCalloutMarkdown(text)) {
+            // Encadrés « > [!WARNING] » : conversion en blocs, puis collage du HTML interne (types conservés)
+            const blocks = liftBookStackBlocks(ed.tryParseMarkdownToBlocks(text), peertubeHosts);
+            ed.pasteHTML(ed.blocksToFullHTML(blocks));
+          } else {
+            ed.pasteMarkdown(text);
+          }
           return true;
         }
         return defaultPasteHandler();
@@ -115,7 +124,8 @@ export default function BlockEditor({ initialContent, initialMarkdown, editable 
     inFlight.current = true;
     setStatus("saving");
     const blocks = editor.document;
-    const markdown = editor.blocksToMarkdownLossy(blocks);
+    // Encadrés exportés en « > [!TYPE] » pour ne pas perdre leur type dans la colonne Markdown
+    const markdown = editor.blocksToMarkdownLossy(lowerCalloutsForMarkdown(blocks) as typeof blocks);
     startTransition(async () => {
       try {
         const res = await onSave(blocks, markdown);
