@@ -35,7 +35,7 @@ const STATUS_LABEL: Record<Status, string> = {
   dirty: "Modifications non enregistrées…",
   saving: "Enregistrement…",
   saved: "Enregistré",
-  error: "Échec de l'enregistrement",
+  error: "Non enregistré",
 };
 
 const NO_HOSTS: string[] = [];
@@ -69,6 +69,8 @@ export default function BlockEditor({ initialContent, initialMarkdown, editable 
     dictionary: fr,
     initialContent: startBlocks,
     extensions: [syntaxHighlighter],
+    // Pas de soulignement rouge du correcteur dans un document de cours (code, noms propres, termes techniques)
+    domAttributes: { editor: { spellcheck: "false" } },
     // Du Markdown brut (fichier .md, VS Code…) est converti en blocs ; un collage ne doit jamais faire planter la page
     pasteHandler: ({ event, editor: ed, defaultPasteHandler }) => {
       try {
@@ -152,11 +154,11 @@ export default function BlockEditor({ initialContent, initialMarkdown, editable 
           role="status"
           aria-live="polite"
           className={`flex min-h-9 items-center justify-end border-b border-line px-3 text-sm ${
-            status === "error" ? "font-semibold text-danger" : "text-muted"
+            status === "error" ? "text-danger" : "text-muted"
           }`}
         >
           {STATUS_LABEL[status]}
-          {error ? ` : ${error}` : ""}
+          {error ? ` — ${error}` : ""}
         </p>
       )}
       <div className={canEdit ? "py-4" : "py-6 md:py-8"}>
